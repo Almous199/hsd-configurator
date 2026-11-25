@@ -1,8 +1,9 @@
 // Раскладка секций полотна (тред 02, тред 05; Alex 25.11.2026).
 //
-// Стандарт: строка таблицы стандартных раскладок (catalogs/hsr/layouts.json) того же вала
-// с наибольшей H, не превышающей H заказа. Секции ниже верхней берутся из строки,
-// верхняя получает остаток. Окно — секция, помеченная в строке (всегда 2-я).
+// Стандарт: число ветровиков — по высоте и валу (layouts.json → windbarsByHeight, предел Top1800
+// по строкам Lefast, тред 02). Высоты секций ниже верхней — из строки стандартных раскладок того же
+// вала и того же числа ветровиков с наибольшей H ≤ H заказа (если такой нет — с наименьшей H).
+// Верхняя получает остаток. Окно — секция, помеченная в строке (всегда 2-я).
 //
 // Ручной «+» (не более двух): +1 делит нижнюю секцию, +2 делит нижнюю и верхнюю.
 // Правило «с подгонкой по намотке» в коде пока заменено делением пополам —
@@ -18,6 +19,13 @@ export function topVisibleOf(H, below, cur) {
   const n = below.length; // число ветровиков = число секций ниже верхней
   const sum = below.reduce((a, b) => a + b, 0);
   return H - (cur.effective.bottomProfile + cur.effective.bottomRubber) - sum - cur.effective.windbar * n;
+}
+
+/** Число ветровиков по высоте проёма и валу (пороги треда 02). */
+export function windbarsFor(H, shaftDia, layouts) {
+  const steps = layouts.windbarsByHeight[String(shaftDia)];
+  for (const st of steps) if (st.maxH == null || H <= st.maxH) return st.windbars;
+  return steps[steps.length - 1].windbars;
 }
 
 export function calcLayout(inp, shaftDia, cat, messages) {
@@ -39,12 +47,13 @@ export function calcLayout(inp, shaftDia, cat, messages) {
     source = 'manual';
     messages.push(warning('OVERRIDE_APPLIED', `Раскладка секций задана вручную: ${ov.reason}`));
   } else {
-    const rows = cat.layouts.rows.filter((r) => r.shaftDia === shaftDia).sort((a, b) => a.H - b.H);
+    const n = windbarsFor(H, shaftDia, cat.layouts);
+    const rows = cat.layouts.rows.filter((r) => r.shaftDia === shaftDia && r.windbars === n).sort((a, b) => a.H - b.H);
     let row = null;
     for (const r of rows) if (r.H <= H) row = r;
     if (!row) {
       row = rows[0];
-      messages.push(warning('LAYOUT_BELOW_TABLE', `H ${H} ниже таблицы раскладок (от ${row.H}), взята строка ${row.H}`));
+      if (H < row.H && n === 2) messages.push(warning('LAYOUT_BELOW_TABLE', `H ${H} ниже таблицы раскладок (от ${row.H}), взята строка ${row.H}`));
     }
     below = row.sectionsBelowTop.slice();
     windowSection = row.windowSection;

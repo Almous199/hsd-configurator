@@ -122,3 +122,15 @@ test('прозрачной не может быть верхняя секция'
   const r = run(3000, 3000, { transparentSections: [3] });
   assert.ok(codes(r.calc).includes('TRANSPARENT_SECTION'));
 });
+
+test('число ветровиков по порогам Top1800 треда 02, высоты из строки с тем же числом', () => {
+  const a = run(3000, 3450).calc.curtain; // φ114, выше порога 3414 → 3 ветровика, строка 3500
+  assert.equal(a.windbars, 3);
+  assert.deepEqual(a.sections.slice(0, -1).map((s) => s.h), [1000, 630, 1000]);
+  assert.equal(a.topVisible, 3450 - 135 - 2630 - 120);
+  const b = run(4500, 4400).calc.curtain; // φ140, выше 4336 → 4 ветровика, строка 4500
+  assert.equal(b.windbars, 4);
+  assert.deepEqual(b.sections.slice(0, -1).map((s) => s.h), [1000, 550, 600, 1000]);
+  assert.equal(run(3000, 3400).calc.curtain.windbars, 2);
+  assert.equal(run(4500, 4336).calc.curtain.windbars, 3);
+});
