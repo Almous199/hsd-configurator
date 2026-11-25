@@ -61,6 +61,7 @@ export function calcFrame(inp, cat, messages) {
     headerHeight: step.headerHeight,
     overOpening: step.overOpening,
     motorCoverEdge: step.motorCoverEdge,
+    motorCoverHeight: step.motorCoverHeight,
     column: { ...spaceSet.column },
     motorSideWidth: spaceSet.motorSide,
     nonMotorSideWidth: spaceSet.nonMotorSide,

@@ -8,6 +8,8 @@
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
     "check:catalogs": "node scripts/check-catalogs.js",
-    "calc": "node scripts/calc-order.js"
+    "calc": "node scripts/calc-order.js",
+    "build": "node scripts/build-standalone.js",
+    "serve": "node scripts/serve.js"
   }
 }
