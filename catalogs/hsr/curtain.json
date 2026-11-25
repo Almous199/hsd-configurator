@@ -1,0 +1,46 @@
+{
+  "_source": "Решения треда 02 (Alex 25.11.2026): эффективные высоты, раскрой, модель намотки",
+  "effective": {
+    "windbar": 40,
+    "windbarOuter": 50,
+    "bottomProfile": 85,
+    "bottomProfileOuter": 90,
+    "bottomRubber": 50,
+    "bottomRubberOuter": 60
+  },
+  "lengthRule": "Длина полотна = H + 200 (верх направляющей) + Hб/2 (вал по центру боковины) + π·D (один оборот)",
+  "guideAboveOpening": 200,
+  "cut": {
+    "opaque": 94,
+    "windowFilmMinus": 10,
+    "windowStrip": 84,
+    "windowStripsPerSection": 2,
+    "topBottom": 47,
+    "topPocket": 120,
+    "widthMargin": 250,
+    "_note": "Непрозрачная h+94; прозрачная: плёнка h−10 + 2 полосы ткани по 84; верхняя h+47+120; ширина раскроя = ширина полотна + 250"
+  },
+  "winding": {
+    "pvcThickness": 0.85,
+    "pvcThicknessAlt": 1.2,
+    "clearThickness": 1.5,
+    "profileThickness": 13
+  },
+  "ranges": {
+    "bottom": [
+      600,
+      1000
+    ],
+    "window": [
+      520,
+      630
+    ],
+    "middle": [
+      600,
+      1000
+    ]
+  },
+  "topLimitAboveGuide": 1800,
+  "windowBottomMax": 1200,
+  "manualExtraWindbarsMax": 2
+}

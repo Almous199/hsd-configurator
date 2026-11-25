@@ -1,0 +1,80 @@
+{
+  "_source": "Alex 25.11: поле формы Frame material, два комплекта, смешанных вариантов нет",
+  "options": [
+    {
+      "id": "alu-galv",
+      "label": {
+        "en": "Aluminium guide rails + Galvanised top cover"
+      },
+      "guide": "alu-hjg1765",
+      "header": {
+        "S": {
+          "cover": "LF-R001-S",
+          "endPlates": "LF-R002-S"
+        },
+        "M": {
+          "cover": "LF-R001-M",
+          "endPlates": "LF-R002-M"
+        }
+      },
+      "motorCover": {
+        "S": {
+          "L": "LF-R005-S-0.75-L",
+          "R": "LF-R005-S-0.75-R"
+        },
+        "M": {
+          "L": "LF-R005-M-1.5-L",
+          "R": "LF-R005-M-1.5-R"
+        }
+      }
+    },
+    {
+      "id": "ss304",
+      "label": {
+        "en": "SS304 guide rails + SS304 top cover"
+      },
+      "guide": "ss304",
+      "guideByHeight": [
+        {
+          "maxHeight": 3500,
+          "rail": "LF-R125-1.5-SS",
+          "topBracket": "LF-R104-1.5-SS"
+        },
+        {
+          "rail": "LF-R125-2.0-SS",
+          "topBracket": "LF-R104-2.0-SS"
+        }
+      ],
+      "guideParts": {
+        "seal": "LF-R126-SS",
+        "fittingStrip": "LF-R127-SS",
+        "footBracket": "LF-R129-SS"
+      },
+      "header": {
+        "S": {
+          "cover": "LF-R101-S-SS",
+          "endPlates": "LF-R102-S-SS"
+        },
+        "M": {
+          "cover": "TM-001-SS",
+          "endPlates": "TM-002-SS"
+        }
+      },
+      "motorCover": {
+        "S": {
+          "L": "LF-R105-S-0.75-L-SS",
+          "R": "LF-R105-S-0.75-R-SS"
+        },
+        "M": {
+          "L": "TM-005-1.5-M-SS-L",
+          "R": "TM-005-1.5-M-SS-R"
+        }
+      },
+      "verified": true,
+      "_notes": [
+        "Боковины и кожух мотора в комплекте SS304 — тоже SS304 (подтвердил Alex 25.11).",
+        "LF-R1xx-…-SS ждут импорта в Zoho; M-позиции — существующие TM-* (Alex: TM не трогать)."
+      ]
+    }
+  ]
+}

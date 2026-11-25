@@ -1,0 +1,89 @@
+{
+  "_source": "SAPCE TABLE, лист 9.9 (китайская ревизия 2020.09.09, 滚筒提升 电机外置). Лист 8.6 не используется (сдвиг столбца при переводе). Выбор Alex 25.11.",
+  "installGap": 20,
+  "aluminium": {
+    "column": {
+      "w": 130,
+      "d": 90
+    },
+    "nonMotorSide": 180,
+    "motorSide": 350,
+    "steps": [
+      {
+        "maxWidth": 4000,
+        "maxHeight": 4000,
+        "headerDepth": 235,
+        "headerHeight": 270,
+        "overOpening": 470,
+        "motorCoverEdge": 30,
+        "sidePlate": "S"
+      },
+      {
+        "maxWidth": 4500,
+        "maxHeight": 4500,
+        "headerDepth": 285,
+        "headerHeight": 320,
+        "overOpening": 520,
+        "motorCoverEdge": 30,
+        "sidePlate": "M"
+      },
+      {
+        "maxWidth": 6000,
+        "maxHeight": 5000,
+        "headerDepth": 340,
+        "headerHeight": 427,
+        "overOpening": 627,
+        "motorCoverEdge": 30,
+        "sidePlate": "L"
+      }
+    ]
+  },
+  "stainless": {
+    "column": {
+      "w": 92,
+      "d": 96
+    },
+    "nonMotorSide": 150,
+    "motorSide": 315,
+    "steps": [
+      {
+        "maxWidth": 4000,
+        "maxHeight": 4000,
+        "headerDepth": 230,
+        "headerHeight": 270,
+        "overOpening": 470,
+        "motorCoverEdge": 30,
+        "sidePlate": "S"
+      },
+      {
+        "maxWidth": 4500,
+        "maxHeight": 4500,
+        "headerDepth": 285,
+        "headerHeight": 320,
+        "overOpening": 520,
+        "motorCoverEdge": 30,
+        "sidePlate": "M"
+      },
+      {
+        "maxWidth": 6000,
+        "maxHeight": 5000,
+        "headerDepth": 340,
+        "headerHeight": 427,
+        "overOpening": 627,
+        "motorCoverEdge": 30,
+        "sidePlate": "L"
+      }
+    ],
+    "note": "Нержавейка: ступени S и M с зазорами 150/315. Для M (>4000×4000) значения короба взяты как у алюминия — догадка, verified:false.",
+    "verified": false
+  },
+  "outOfTable": {
+    "text": "Проём до 6000×6000 (макс. SDA) при H>5000 — вне таблицы Lefast: боковина L, вал по проверке рулона, пометка «спецзаказ»",
+    "verified": false
+  },
+  "_notes": [
+    "Полная высота = H + overOpening; +30 — кромка крепления кожуха мотора.",
+    "Строка 净空高度 №2 в листе (везде 470+30) считаем ошибкой Lefast."
+  ],
+  "sdaUse": "Для SDA используются только строки с боковиной S и M; строка L — справочно (Alex 25.11). Выбор ступени — header.json → selection."
+}

@@ -1,0 +1,130 @@
+{
+  "_source": "HSR calculation.xlsx N14/N15/I20/F5; таблица пространств ревизия 2020.09.09; SKU по Zoho; решения Alex 25.11",
+  "shafts": [
+    {
+      "dia": 114,
+      "sku": "LF-R007-114",
+      "flange": "LF-R006-114"
+    },
+    {
+      "dia": 140,
+      "sku": "LF-R007-140",
+      "flange": "LF-R006-140"
+    },
+    {
+      "dia": 220,
+      "sku": null,
+      "flange": null,
+      "note": "Нет в Zoho, спецзаказ"
+    }
+  ],
+  "shaftDiaAlias": {
+    "110": 114,
+    "_note": "В таблице секций Lefast φ110 — считаем тем же валом φ114, verified:false"
+  },
+  "sidePlates": [
+    {
+      "id": "XS",
+      "size": {
+        "h": 244,
+        "d": 209
+      },
+      "shaftDia": 114,
+      "overOpening": 440,
+      "maxMotorKw": 0.75,
+      "cover": null,
+      "endPlates": null,
+      "active": false,
+      "note": "Специсполнение, нет в таблице и Zoho"
+    },
+    {
+      "id": "S",
+      "size": {
+        "h": 274,
+        "d": 234
+      },
+      "shaftDia": 114,
+      "overOpening": 470,
+      "cover": "LF-R001-S",
+      "endPlates": "LF-R002-S",
+      "active": true
+    },
+    {
+      "id": "M",
+      "size": {
+        "h": 322,
+        "d": 284
+      },
+      "shaftDia": 140,
+      "overOpening": 520,
+      "cover": "LF-R001-M",
+      "endPlates": "LF-R002-M",
+      "active": true
+    },
+    {
+      "id": "L",
+      "size": {
+        "h": 427,
+        "d": 340
+      },
+      "shaftDia": 140,
+      "overOpening": 627,
+      "cover": null,
+      "endPlates": null,
+      "active": false,
+      "note": "Для SDA не используется (Alex 25.11): рулон на φ140 при H=6000 ≈225 мм, M вмещает до 250; у Lefast L нужна под мотор 2,2 кВт, которого у SDA нет"
+    }
+  ],
+  "selection": {
+    "rule": "До 4000×4000 включительно → S + φ114; больше и площадь проёма ≤ 28 м² → M + φ140; площадь > 28 м² не допускается. Ручная замена в заказе с указанием причины (Alex 25.11).",
+    "steps": [
+      {
+        "maxWidth": 4000,
+        "maxHeight": 4000,
+        "sidePlate": "S",
+        "shaftDia": 114
+      },
+      {
+        "maxArea_m2": 28,
+        "maxWidth": 6000,
+        "maxHeight": 6000,
+        "sidePlate": "M",
+        "shaftDia": 140
+      }
+    ],
+    "maxArea_m2": 28,
+    "manualOverride": true
+  },
+  "axles": {
+    "dia": 30,
+    "motorSide": {
+      "length": 300,
+      "sku": "LF-R008",
+      "qty": 1
+    },
+    "otherSide": {
+      "length": 210,
+      "sku": "LF-R009",
+      "qty": 1
+    },
+    "note": "По Zoho; у Lefast 25 мм 300/211"
+  },
+  "bearing": {
+    "sku": "LF-R013",
+    "qty": 2
+  },
+  "lockingCup": {
+    "sku": "LF-R022",
+    "qty": 1
+  },
+  "connectionBeam": {
+    "sku": "MET50x25",
+    "qty": 2,
+    "always": true,
+    "note": "Всегда 2 шт (Alex 25.11). Длина — в правилах спецификации (тред Frame)"
+  },
+  "wideShaftWarning": {
+    "widthOver": 5850,
+    "text": "Стыковка вала (传动轴对接)"
+  }
+}
