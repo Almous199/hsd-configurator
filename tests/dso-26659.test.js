@@ -54,9 +54,20 @@ test('привод: A2 0,75 кВт, RV50 1:20, кабеля в комплект�
   assert.equal(d.cableToBuy, 0);
 });
 
-test('сетки ПВХ blue 1100 нет в Zoho — предупреждение и пустой SKU', () => {
-  assert.ok(codes(calc).includes('PVC_NO_SKU'));
-  assert.deepEqual(spec.missingSku, ['pvc']);
+test('ткань: синий ПВХ 1100 г/м² — PVC-0.8-blue, все SKU есть', () => {
+  assert.equal(calc.curtain.pvc.sku, 'PVC-0.8-blue');
+  assert.ok(!codes(calc).includes('PVC_NO_SKU'));
+  assert.deepEqual(spec.missingSku, []);
+});
+
+test('сетка бывает только жёлтая (PVCM-1.0-yellow); другой цвет сетки — предупреждение', () => {
+  const run = (pvc) => calculateHsr({ ...doc, options: { ...doc.options, pvc } }, cat, { now: '2026-11-25T00:00:00+07:00' });
+  const y = run('mesh-yellow');
+  assert.equal(y.calc.curtain.pvc.sku, 'PVCM-1.0-yellow');
+  assert.deepEqual(y.spec.missingSku, []);
+  const b = run('mesh-blue');
+  assert.ok(codes(b.calc).includes('PVC_NO_SKU'));
+  assert.deepEqual(b.spec.missingSku, ['pvc']);
 });
 
 test('спецификация на одни ворота в единицах Zoho', () => {
@@ -81,8 +92,10 @@ test('спецификация на одни ворота в единицах Zo
 });
 
 test('CSV сборки не выпускается, пока у ткани нет SKU', () => {
-  const out = exportAssemblyCsv(doc, { calc, spec }, cat, { date: '2026-11-25' });
+  const d = { ...doc, options: { ...doc.options, pvc: 'orange' } };
+  const out = exportAssemblyCsv(d, calculateHsr(d, cat), cat, { date: '2026-11-25' });
   assert.ok(out.problems.some((p) => p.includes('нет SKU')));
+  assert.deepEqual(exportAssemblyCsv(doc, { calc, spec }, cat, { date: '2026-11-25' }).problems, []);
 });
 
 test('ручная раскладка с чертежа (4 ветровика, окно 3-я секция)', () => {

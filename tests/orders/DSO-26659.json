@@ -17,7 +17,7 @@
     "model": "SDA",
     "supply": "own",
     "frameMaterial": "alu-galv",
-    "pvc": "mesh-blue",
+    "pvc": "blue",
     "driveSide": "L",
     "controlSide": "L",
     "controlBoxHeight": 1200,

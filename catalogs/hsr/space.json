@@ -16,7 +16,8 @@
         "headerHeight": 270,
         "overOpening": 470,
         "motorCoverEdge": 30,
-        "sidePlate": "S"
+        "sidePlate": "S",
+        "motorCoverHeight": 370
       },
       {
         "maxWidth": 4500,
@@ -25,7 +26,8 @@
         "headerHeight": 320,
         "overOpening": 520,
         "motorCoverEdge": 30,
-        "sidePlate": "M"
+        "sidePlate": "M",
+        "motorCoverHeight": 420
       },
       {
         "maxWidth": 6000,
@@ -34,7 +36,8 @@
         "headerHeight": 427,
         "overOpening": 627,
         "motorCoverEdge": 30,
-        "sidePlate": "L"
+        "sidePlate": "L",
+        "motorCoverHeight": 470
       }
     ]
   },
@@ -53,7 +56,8 @@
         "headerHeight": 270,
         "overOpening": 470,
         "motorCoverEdge": 30,
-        "sidePlate": "S"
+        "sidePlate": "S",
+        "motorCoverHeight": 370
       },
       {
         "maxWidth": 4500,
@@ -62,7 +66,8 @@
         "headerHeight": 320,
         "overOpening": 520,
         "motorCoverEdge": 30,
-        "sidePlate": "M"
+        "sidePlate": "M",
+        "motorCoverHeight": 420
       },
       {
         "maxWidth": 6000,
@@ -71,7 +76,8 @@
         "headerHeight": 427,
         "overOpening": 627,
         "motorCoverEdge": 30,
-        "sidePlate": "L"
+        "sidePlate": "L",
+        "motorCoverHeight": 470
       }
     ],
     "note": "Нержавейка: ступени S и M с зазорами 150/315. Для M (>4000×4000) значения короба взяты как у алюминия — догадка, verified:false.",
@@ -83,7 +89,8 @@
   },
   "_notes": [
     "Полная высота = H + overOpening; +30 — кромка крепления кожуха мотора.",
-    "Строка 净空高度 №2 в листе (везде 470+30) считаем ошибкой Lefast."
+    "Строка 净空高度 №2 в листе (везде 470+30) считаем ошибкой Lefast.",
+    "motorCoverHeight — высота кожуха мотора для эскиза: S 540×200×370, M 632×200×420 (Zoho, тред 04)"
   ],
   "sdaUse": "Для SDA используются только строки с боковиной S и M; строка L — справочно (Alex 25.11). Выбор ступени — header.json → selection."
 }

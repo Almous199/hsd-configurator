@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDA configurator</title>
+<style>
+  @page { size: A4 landscape; margin: 0; }
+  :root { --ink:#1b1f24; --muted:#5b6470; --line:#c9ced4; --accent:#1f5fa8; --bg:#eef0f3; --dim:#b0127a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); font-family: Arial, Loma, "Noto Sans Thai", sans-serif; color:var(--ink); font-size:14px; }
+  .app { max-width:1240px; margin:0 auto; padding:16px; }
+  h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--muted); margin-bottom:14px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+  .card h2 { font-size:15px; margin:0 0 10px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:10px 16px; }
+  label.f { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); }
+  input, select, textarea { font:inherit; color:var(--ink); padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  textarea { resize:vertical; min-height:38px; }
+  .hint { font-size:11px; color:var(--muted); }
+  .row2 { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+  @media (max-width:900px){ .row2{grid-template-columns:1fr} }
+  .sw { display:flex; flex-wrap:wrap; gap:8px; }
+  .sw button { width:34px; height:34px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px var(--line); cursor:pointer; }
+  .sw button.on { box-shadow:0 0 0 3px var(--ink); }
+  table.acc { width:100%; border-collapse:collapse; }
+  table.acc th { text-align:left; font-size:12px; color:var(--muted); font-weight:400; padding:4px 6px; border-bottom:1px solid var(--line); }
+  table.acc td { padding:4px 6px; border-bottom:1px solid #eef0f2; }
+  table.acc select, table.acc input { width:100%; }
+  .qty { display:flex; align-items:center; gap:4px; }
+  .qty input { width:52px; text-align:center; }
+  .btn { font:inherit; padding:6px 12px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  .btn.p { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn.s { padding:4px 9px; }
+  .sec { display:flex; align-items:center; gap:8px; }
+  .sec b { min-width:24px; text-align:center; font-size:16px; }
+  .pic { height:560px; background:#fafbfc; border:1px solid var(--line); border-radius:8px; }
+  .pic svg { width:100%; height:100%; }
+  .legend { display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:8px; }
+  .tag { display:inline-block; padding:1px 7px; border-radius:10px; background:#e6effa; color:var(--accent); font-size:11px; }
+
+  /* ---- A4 approval sheet ---- */
+  .sheetwrap { overflow:auto; }
+  .sheet { width:297mm; height:210mm; margin:0 auto; background:#fff; padding:6mm 7mm; display:grid; grid-template-rows: 1fr 31mm 27mm; gap:2.5mm; box-shadow:0 2px 10px rgba(0,0,0,.15); font-size:2.6mm; }
+  .sheet .draw { position:relative; border:0.35mm solid var(--ink); min-height:0; }
+  .sheet .draw svg { position:absolute; inset:0; width:100%; height:100%; }
+  .sheet .info { display:grid; grid-template-columns: 1.6fr 1fr; gap:2.5mm; min-height:0; }
+  .box { border:0.3mm solid var(--line); padding:1.5mm 2.5mm; min-height:0; overflow:hidden; }
+  .box h4 { margin:0 0 1mm; font-size:2.4mm; text-transform:uppercase; letter-spacing:.2mm; color:var(--muted); font-weight:700; }
+  .box h4 span { font-weight:400; text-transform:none; }
+  .kv2 { display:grid; grid-template-columns: 27mm 1fr 27mm 1fr; column-gap:2mm; row-gap:0.6mm; font-size:2.35mm; }
+  .kv2 .k i { display:block; }
+  .kv2 .k { color:var(--muted); }
+  .kv2 .k i { font-style:normal; font-size:2.1mm; }
+  .acc2 { columns:2; column-gap:5mm; }
+  .acc2 div b { white-space:nowrap; margin-left:2mm; }
+  .acc2 div { display:flex; justify-content:space-between; border-bottom:0.2mm dotted var(--line); break-inside:avoid; padding:0.3mm 0; }
+  .stamp { display:grid; grid-template-columns: 62mm 1fr 58mm; border:0.35mm solid var(--ink); }
+  .stamp > div { padding:1.5mm 2.5mm; border-right:0.3mm solid var(--line); }
+  .stamp > div:last-child { border-right:0; }
+  .logo b { font-size:4.4mm; letter-spacing:.3mm; display:block; }
+  .logo span { color:var(--muted); font-size:2.15mm; line-height:1.35; display:block; margin-top:0.8mm; }
+  .kv3 { display:grid; grid-template-columns: 30mm 1fr; column-gap:2mm; row-gap:0.6mm; }
+  .kv3 .k { color:var(--muted); } .kv3 .k i { font-style:normal; font-size:2.05mm; }
+  .sig { margin-top:5mm; border-top:0.2mm solid var(--ink); padding-top:0.6mm; color:var(--muted); font-size:2.2mm; }
+  table.spec td { font-size:12px; } table.spec td.n { text-align:right; font-variant-numeric:tabular-nums; } table.spec tr.miss td { color:#b71c1c; } table.spec tr.pend td { color:#8a6d00; }
+  #notes ul { margin:4px 0 0 18px; padding:0; }
+  .langsw { position:fixed; top:12px; right:16px; display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; z-index:10; }
+  .langsw button { font:inherit; border:0; background:#fff; padding:6px 12px; cursor:pointer; color:var(--muted); }
+  .langsw button.on { background:var(--accent); color:#fff; }
+  @media print {
+    body { background:#fff; } .app > *:not(.sheetwrap), .langsw { display:none !important; }
+    .app { padding:0; max-width:none; } .sheet { box-shadow:none; margin:0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="langsw"><button data-lang="en">EN</button><button data-lang="th">ไทย</button></div>
+  <h1 data-i="title">SDA · new order</h1>
+  <div class="sub"><span data-i="sub">Order form on the calculation core. Customer data will be pulled from Zoho on the server.</span> <span class="tag" id="engineTag"></span></div>
+
+  <div class="card">
+    <h2 data-i="order">Order</h2>
+    <div class="grid">
+      <label class="f"><span data-i="so">Sales order number</span>
+        <div style="display:flex;gap:6px"><input id="so" value="DSO-26659" style="flex:1"><button class="btn s" id="load" data-i="load" disabled title="Available on the server">Load from Zoho</button></div>
+        <span class="hint" data-i="soHint">Customer and addresses are pulled from the SO</span></label>
+      <label class="f"><span data-i="cust">Customer</span><input id="cust" value="JSCG"></label>
+      <label class="f"><span data-i="addr">Delivery address</span>
+        <textarea id="addr" rows="2">259/319 Sukhumvit 71 Road, Prakanongnua, Wattana, Bangkok 10110</textarea>
+        <span class="hint" data-i="addrHint">If the SO has no shipping address, the billing address is used</span></label>
+      <label class="f"><span data-i="ref">Reference / door location</span><input id="ref" value="Type 2 · 5 doors"></label>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="card">
+      <h2 data-i="door">Door</h2>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <label class="f"><span data-i="W">Opening width W, mm</span><input id="W" type="number" value="2000" min="800" max="6000" step="10"></label>
+        <label class="f"><span data-i="H">Opening height H, mm</span><input id="H" type="number" value="2600" min="1000" max="6000" step="10"></label>
+        <label class="f"><span data-i="qty">Quantity</span><input id="qty" type="number" value="5" min="1"></label>
+        <label class="f"><span data-i="frame">Frame material</span><select id="guide"><option value="alu" selected data-i="frameAlu">Aluminium guide rails + Galvanised top cover</option><option value="ss" data-i="frameSS">SS304 guide rails + SS304 top cover</option></select></label>
+        <label class="f"><span data-i="supply">Supply</span><select id="supply"><option value="own" selected data-i="own">Own production · SDA-DS</option><option value="out" data-i="out">Ordered outside · SDA</option></select></label>
+        <label class="f"><span data-i="sections">Sections</span>
+          <div class="sec"><button class="btn s" id="sm">−</button><b id="sn">5</b><button class="btn s" id="sp">+</button>
+          <button class="btn s" id="sa" title="Reset to the standard layout" data-i="auto">auto</button></div>
+          <span class="hint" id="shint"></span></label>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:12px">
+        <label class="f"><span data-i="fabric">Curtain fabric</span><select id="fabric"><option value="pvc" data-i="fabPvc">PVC fabric 1100 g/m²</option><option value="mesh" data-i="fabMesh">PVC mesh fabric (transparent yellow)</option></select></label>
+        <label class="f"><span data-i="ctrlH">Control box height, mm</span><input id="ctrlH" type="number" value="1000" min="600" max="2000" step="50"></label>
+      </div>
+      <div style="margin-top:12px">
+        <div class="hint" style="margin-bottom:6px" data-i="colour">Curtain colour</div>
+        <div class="sw" id="sw"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-i="acc">Accessories</h2>
+      <table class="acc">
+        <thead><tr><th style="width:38%" data-i="type">Type</th><th data-i="model">Model</th><th style="width:120px" data-i="qtyH">Qty</th><th style="width:30px"></th></tr></thead>
+        <tbody id="acc"></tbody>
+      </table>
+      <div style="margin-top:8px"><button class="btn" id="addAcc" data-i="add">+ Add accessory</button></div>
+      <div class="hint" style="margin-top:8px" data-i="stdHint">Standard set (photocells, wireless bottom safety edge) is included automatically and is not listed here.</div>
+    </div>
+  </div>
+
+  <div id="warn" style="display:none;background:#fdecea;border:1px solid #e57373;color:#b71c1c;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-weight:700"></div>
+  <div id="notes" style="display:none;background:#fff8e1;border:1px solid #f0c36d;color:#6d4c00;border-radius:10px;padding:10px 16px;margin-bottom:14px"></div>
+  <div class="card">
+    <h2 data-i="pic">Front view, from inside · tick the options on the picture</h2>
+    <div class="pic"><svg id="form-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="legend">
+      <span data-i="leg1">☐ next to a section: transparent section</span>
+      <span data-i="leg2">☐ left / right of the top box: drive side</span>
+      <span data-i="leg3">☐ left / right at the controller height: control box side</span>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <div class="hint" data-i="saveHint">“Save calculation” freezes this block for the manager. Below is the approval sheet that the customer signs (always EN + TH).</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="btn" style="margin:0"><span data-i="open">Open order…</span><input type="file" id="openFile" accept=".json,application/json" hidden></label><button class="btn" id="save" data-i="save">Save calculation</button><button class="btn p" id="print" data-i="print">Print / PDF</button></div>
+  </div>
+
+  <div class="card" id="specCard">
+    <h2 data-i="spec">Specification and Zoho assembly · engineer</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:10px">
+      <label class="f"><span data-i="asm">Composite item</span><select id="asm"></select></label>
+      <label class="f"><span data-i="bun">Assembly number</span><input id="bun" readonly></label>
+      <label class="f"><span data-i="asmDate">Assembly date</span><input id="asmDate" type="date"></label>
+      <label class="f"><span>&nbsp;</span><button class="btn p" id="csv" data-i="csv">Export CSV for Zoho</button></label>
+    </div>
+    <div id="csvMsg" class="hint" style="margin-bottom:8px"></div>
+    <div style="overflow:auto"><table class="acc spec">
+      <thead><tr><th data-i="secH">Section</th><th>SKU</th><th data-i="nameH">Zoho name</th><th style="text-align:right" data-i="perDoor">Per door</th><th data-i="unitH">Unit</th><th style="text-align:right" data-i="total">Total</th><th data-i="ruleH">Rule</th></tr></thead>
+      <tbody id="specBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="sheetwrap">
+    <div class="sheet">
+      <div class="draw"><svg id="sheet-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <div class="info">
+        <div class="box"><h4>Door <span>· ประตู</span></h4><div class="kv2" id="doorkv"></div></div>
+        <div class="box"><h4>Accessories <span>· อุปกรณ์เสริม</span></h4><div class="acc2" id="acclist"></div></div>
+      </div>
+      <div class="stamp">
+        <div class="logo"><b>DOORHAN SIAM</b><span>DOORHAN SIAM CO., LTD.<br>486/17 Moo 9, Nai Khlong Bang Pla Kot, Phra Samut Chedi, Samut Prakan 10290<br>Tax ID 0105565072955 · +66 (0)2 103 6738<br>sales@doorhan-siam.com · www.doorhan-siam.com</span></div>
+        <div class="kv3" id="stampkv"></div>
+        <div><div class="kv3"><span class="k">Drawing date <i>วันที่</i></span><span id="sdate"></span><span class="k">Drawing No. <i>เลขที่แบบ</i></span><span id="drawNo"></span></div>
+          <div class="sig">Approved by customer · อนุมัติโดยลูกค้า<br>name · signature · date</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
