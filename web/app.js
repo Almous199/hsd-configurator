@@ -20,6 +20,9 @@ const CAT = await loadCatalogs();
 const $ = (id) => document.getElementById(id);
 
 // Цвета образцов. id — ключ ткани в ядре (profiles.json → pvc.colors / mesh); без SKU ядро предупредит.
+// Основная ткань PVC 1100 г/м² — PVC-0.8-<цвет>; сетка — только жёлтая, запаянная в прозрачный жёлтый ПВХ (PVCM-1.0-yellow), Alex 25.11.
+const MESH_COLORS = [['Transparent yellow', '#e9cf5c', 'เหลืองใส', 'yellow']];
+const pal = () => (S.fabric === 'mesh' ? MESH_COLORS : COLORS);
 const COLORS = [['Blue', '#1f5fa8', 'น้ำเงิน', 'blue'], ['Orange', '#e8711f', 'ส้ม', 'orange'], ['Yellow', '#f2c230', 'เหลือง', 'yellow'],
   ['Red', '#c62828', 'แดง', 'red'], ['Green', '#2e7d32', 'เขียว', 'green'], ['Grey', '#7d868f', 'เทา', 'grey'], ['White', '#eef0f2', 'ขาว', 'white']];
 
@@ -39,7 +42,7 @@ for (const t of CAT.accessories.types) {
 ACC_MODELS.other = [{ sku: null, available: true, label: '', short: '' }];
 
 const S = {
-  id: 'DSO-26659-2', revision: 1, W: 2000, H: 2600, qty: 5, color: 0, fabric: 'mesh', extra: 0, layout: null,
+  id: 'DSO-26659-2', revision: 1, W: 2000, H: 2600, qty: 5, color: 0, fabric: 'pvc', extra: 0, layout: null,
   visionAuto: true, vision: new Set([2]), motor: 'L', ctrl: 'L', ctrlH: 1200,
   acc: [{ t: 'radar', sku: 'Orca', q: 1 }],
   guide: 'alu', supply: 'own',
@@ -75,7 +78,7 @@ const I18N = {
 // Дополнительные подписи формы (к словарю макета)
 Object.assign(I18N.en, {
   sub: 'Order form on the calculation core. Customer data will be pulled from Zoho on the server.',
-  fabric: 'Curtain fabric', fabPvc: 'PVC 900 g/m²', fabMesh: 'PVC mesh 1100 g/m²', ctrlH: 'Control box height, mm',
+  fabric: 'Curtain fabric', fabPvc: 'PVC fabric 1100 g/m²', fabMesh: 'PVC mesh fabric (transparent yellow)', ctrlH: 'Control box height, mm',
   open: 'Open order…', save: 'Save order (JSON)', spec: 'Specification and Zoho assembly · engineer', asm: 'Composite item',
   bun: 'Assembly number', asmDate: 'Assembly date', csv: 'Export CSV for Zoho', secH: 'Section', nameH: 'Zoho name',
   perDoor: 'Per door', unitH: 'Unit', total: 'Total', ruleH: 'Rule', outsourced: 'Ordered outside (SDA): no assembly in Zoho.',
@@ -83,7 +86,7 @@ Object.assign(I18N.en, {
 });
 Object.assign(I18N.th, {
   sub: 'ฟอร์มคำสั่งซื้อบนแกนคำนวณ ข้อมูลลูกค้าจะดึงจาก Zoho บนเซิร์ฟเวอร์',
-  fabric: 'ผ้าม่าน', fabPvc: 'PVC 900 g/m²', fabMesh: 'PVC ตาข่าย 1100 g/m²', ctrlH: 'ความสูงตู้ควบคุม, มม.',
+  fabric: 'ผ้าม่าน', fabPvc: 'ผ้า PVC 1100 g/m²', fabMesh: 'ผ้าตาข่าย PVC (เหลืองใส)', ctrlH: 'ความสูงตู้ควบคุม, มม.',
   open: 'เปิดคำสั่งซื้อ…', save: 'บันทึกคำสั่งซื้อ (JSON)', spec: 'รายการวัสดุและการประกอบใน Zoho · วิศวกร', asm: 'สินค้าประกอบ',
   bun: 'เลขที่การประกอบ', asmDate: 'วันที่ประกอบ', csv: 'ส่งออก CSV สำหรับ Zoho', secH: 'หมวด', nameH: 'ชื่อใน Zoho',
   perDoor: 'ต่อประตู', unitH: 'หน่วย', total: 'รวม', ruleH: 'กฎ', outsourced: 'สั่งจากภายนอก (SDA): ไม่มีการประกอบใน Zoho',
@@ -123,6 +126,7 @@ function defs(svg, pvc){
   <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef7fd"/><stop offset=".5" stop-color="#d3e9f6"/><stop offset="1" stop-color="#b9d9ec"/></linearGradient>
   <linearGradient id="ss" x1="0" x2="1"><stop offset="0" stop-color="#9da6ae"/><stop offset=".25" stop-color="#e8edf1"/><stop offset=".5" stop-color="#b4bcc4"/><stop offset=".75" stop-color="#f4f7f9"/><stop offset="1" stop-color="#8d969f"/></linearGradient>
   <pattern id="floor" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="60" stroke="#8a929b" stroke-width="7"/></pattern>
+  <pattern id="mesh" width="70" height="70" patternUnits="userSpaceOnUse"><path d="M0 0H70M0 0V70" stroke="#b8961c" stroke-opacity=".55" stroke-width="5" fill="none"/></pattern>
   <pattern id="sand" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="3.5" fill="#9aa3ad"/><circle cx="30" cy="30" r="3.5" fill="#9aa3ad"/></pattern>`;
 }
 
@@ -137,7 +141,7 @@ function checkbox(p,x,y,on,cb,label,anchor,lc){
 // Draws front view (+ section on the sheet). mode: 'form' | 'sheet'
 function draw(svg, mode){
   svg.innerHTML='';
-  const {W,H,boxH,boxD,guideW,guideD}=S, pvc=COLORS[S.color][1];
+  const {W,H,boxH,boxD,guideW,guideD}=S, pvc=pal()[S.color][1];
   defs(svg,pvc);
   const left = S.motor==='L'?S.sideMotor:S.sideFree, right = S.motor==='L'?S.sideFree:S.sideMotor;
   const a=0, xL=a-left, xR=a+W+right, GT=H+200, top=-(GT+boxH);   // columns stand 200 above the opening, box on top (thread 03)
@@ -170,6 +174,7 @@ function draw(svg, mode){
   el('line',{x1:xL-300,y1:0,x2:xR+300,y2:0,stroke:'#1b1f24','stroke-width':14},g);
   // curtain
   el('rect',{x:a,y:-GT,width:W,height:GT,fill:pvc},g);
+  if(S.fabric==='mesh') el('rect',{x:a,y:-GT,width:W,height:GT,fill:'url(#mesh)'},g); // сетка в прозрачном жёлтом ПВХ
   el('rect',{x:a,y:-GT,width:W,height:GT,fill:'url(#sheen)'},g);
   // transparent sections (whole section between profiles)
   for(let i=1;i<=n;i++){ if(!S.vision.has(i)) continue;
@@ -262,7 +267,7 @@ function buildDoc() {
   const accessories = S.acc.filter((r) => r.t !== 'other').map((r) => ({ type: r.t, sku: r.sku, qty: r.q }));
   const o = {
     model: 'SDA', supply: S.supply, frameMaterial: S.guide === 'ss' ? 'ss304' : 'alu-galv',
-    pvc: (S.fabric === 'mesh' ? 'mesh-' : '') + COLORS[S.color][3],
+    pvc: (S.fabric === 'mesh' ? 'mesh-' : '') + pal()[S.color][3],
     driveSide: S.motor, controlSide: S.ctrl, controlBoxHeight: S.ctrlH,
     sections: { extraWindbars: S.extra }, accessories, overrides: S.overrides,
   };
@@ -309,17 +314,17 @@ function renderAcc() {
 
 function renderColors() {
   const sw = $('sw'); sw.innerHTML = '';
-  COLORS.forEach(([n, c], i) => { const b = document.createElement('button'); b.style.background = c; b.title = n; if (i === S.color) b.className = 'on'; b.onclick = () => { S.color = i; update(); }; sw.appendChild(b); });
+  pal().forEach(([n, c], i) => { const b = document.createElement('button'); b.style.background = c; b.title = n; if (i === S.color) b.className = 'on'; b.onclick = () => { S.color = i; update(); }; sw.appendChild(b); });
 }
 
 function renderSheetText(calc) {
-  const c = COLORS[S.color];
+  const c = pal()[S.color];
   const n = calc.curtain ? calc.curtain.sections.length : 0;
   const vis = calc.curtain ? calc.curtain.sections.filter((s) => s.transparent).length : 0;
   const drv = calc.drive ? `Servo motor ${calc.drive.powerKw} kW 220 V · control unit A2` : '—';
   const rows = [
     ['Model', 'รุ่น', 'High speed roll-up PVC door with wind struts'],
-    ['Curtain', 'ม่าน', `${S.fabric === 'mesh' ? 'Coated PVC mesh 1100 g/m²' : 'Coated PVC fabric 900 g/m²'}, ${c[0].toLowerCase()} · ${n} sections`],
+    ['Curtain', 'ม่าน', `${S.fabric === 'mesh' ? 'PVC mesh fabric sealed in transparent yellow PVC' : `Coated PVC fabric 1100 g/m², ${c[0].toLowerCase()}`} · ${n} sections`],
     ['Transparent sections', 'ช่องใส', vis ? `${vis} of ${n}` : 'none'],
     ['Frame', 'วัสดุโครง', S.guide === 'ss' ? 'SS304 guide rails + SS304 top cover' : 'Aluminium guide rails + galvanised top cover'],
     ['Drive · control', 'มอเตอร์ · ตู้ควบคุม', drv],
@@ -385,6 +390,7 @@ function update() {
   S.guide = $('guide').value;
   S.supply = $('supply').value === 'out' ? 'outsourced' : 'own';
   S.fabric = $('fabric').value;
+  if (S.color >= pal().length) S.color = 0;
   S.ctrlH = Math.round(+$('ctrlH').value || 1000);
   S.id = idFromSo();
 
@@ -475,7 +481,8 @@ function loadOrder(doc) {
   $('supply').value = o.supply === 'outsourced' ? 'out' : 'own';
   const pvc = o.pvc || 'blue';
   $('fabric').value = pvc.startsWith('mesh-') ? 'mesh' : 'pvc';
-  const ci = COLORS.findIndex((c) => c[3] === pvc.replace(/^mesh-/, ''));
+  S.fabric = $('fabric').value;
+  const ci = pal().findIndex((c) => c[3] === pvc.replace(/^mesh-/, ''));
   S.color = ci >= 0 ? ci : 0;
   S.motor = o.driveSide || 'L'; S.ctrl = o.controlSide || S.motor;
   $('ctrlH').value = o.controlBoxHeight || 1000;
@@ -489,7 +496,7 @@ function loadOrder(doc) {
 $('asmDate').value = new Date().toISOString().slice(0, 10);
 $('so').value = 'DSO-26659-2';
 $('ref').value = 'Type 2 · 5 doors';
-$('fabric').value = 'mesh';
+$('fabric').value = 'pvc';
 $('ctrlH').value = 1200;
 const q = new URLSearchParams(location.search);
 if (q.get('motor')) S.motor = q.get('motor'); if (q.get('ctrl')) S.ctrl = q.get('ctrl');

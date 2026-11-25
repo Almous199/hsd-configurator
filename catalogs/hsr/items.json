@@ -323,7 +323,7 @@
     {
       "sku": "PVC-0.8-blue",
       "zohoItemId": "310335000002847532",
-      "name": "PVC coated fabric 900 gsm blue",
+      "name": "PVC coated fabric 1100 gsm blue",
       "unit": "m2",
       "zohoUnitNow": "m2",
       "group": "curtain",
@@ -333,7 +333,7 @@
     {
       "sku": "PVC-0.8-yellow",
       "zohoItemId": "310335000002847505",
-      "name": "PVC coated fabric 900 gsm yellow",
+      "name": "PVC coated fabric 1100 gsm yellow",
       "unit": "m2",
       "zohoUnitNow": "m2",
       "group": "curtain",
@@ -343,7 +343,7 @@
     {
       "sku": "PVC-0.8-grey",
       "zohoItemId": "310335000003101917",
-      "name": "PVC coated fabric 900 gsm grey",
+      "name": "PVC coated fabric 1100 gsm grey",
       "unit": "m2",
       "zohoUnitNow": "m2",
       "group": "curtain",
@@ -353,7 +353,7 @@
     {
       "sku": "PVC-0.8-red",
       "zohoItemId": "310335000003101880",
-      "name": "PVC coated fabric 900 gsm red",
+      "name": "PVC coated fabric 1100 gsm red",
       "unit": "m2",
       "zohoUnitNow": "m2",
       "group": "curtain",
@@ -363,7 +363,7 @@
     {
       "sku": "PVCM-1.0-yellow",
       "zohoItemId": "310335000003364298",
-      "name": "PVC coated mesh fabric 1100 gsm yellow",
+      "name": "PVC mesh fabric sealed in transparent yellow PVC",
       "unit": "m2",
       "zohoUnitNow": "m2",
       "group": "curtain",
@@ -859,9 +859,8 @@
     "Вал φ220 и фланец φ220",
     "Кожухи мотора для L и XS, для S+1,5 кВт",
     "Усиленный ветровик и нижний профиль (полотно > 5000)",
-    "ПВХ 900 gsm white/orange/green/black",
-    "Кнопочный пост на 2 кнопки",
-    "PVC mesh 1100 gsm кроме жёлтого"
+    "ПВХ 1100 gsm white/orange/green/black",
+    "Кнопочный пост на 2 кнопки"
   ],
   "zohoUnitMismatch": [],
   "_unitsFixedInZoho": "2026-11-25 Alex: LF-R009, LF-R015, LF-R023 → pcs"
