@@ -28,6 +28,7 @@ scripts/          проверка каталогов, расчёт заказа
 npm test                          # все тесты
 npm run check:catalogs            # все SKU из каталогов есть в items.json
 node scripts/calc-order.js tests/orders/DSO-26659.json --csv SDA-DS --date 2026-11-25
+npm run sync:zoho                 # названия товаров в items.json по SKU из снимка Zoho
 npm run build                     # собрать форму в один файл dist/sda-order-form.html
 npm run serve                     # форма для разработки: http://localhost:8080/web/
 ```
@@ -57,5 +58,12 @@ npm run serve                     # форма для разработки: http
 | Привод | Powever A2: φ114 → 0,75 кВт; φ140 → 0,75 до 14 м², 1,5 до 28 м². Кабель (полная высота − h блока) + (W+300, если пульт на другой стороне) + 1000, докупка сверх 4/5 м |
 | Спецификация | На одни ворота в единицах Zoho; разделы curtain / header / guides / drive. SDA-DS — все разделы, DUS-055 — только полотно |
 | CSV | Как у секционных (`zoho_export.html`): UTF-8 BOM, CRLF, шапка в каждой строке, Mapped Quantity = на ворота × количество |
+
+## Названия из Zoho
+
+Названия товаров (Mapped Item Name в CSV сборки) руками не пишутся: они берутся из Zoho по SKU.
+`catalogs/zoho/items.json` — снимок всех товаров Zoho (SKU, название, единица, статус). После правки в Zoho снимок
+обновляется чтением Zoho, затем `npm run sync:zoho` переносит названия в `catalogs/hsr/items.json`. Тест падает, если
+название расходится со снимком или артикул в Zoho не найден или неактивен. На сервере Catalyst снимок будет обновляться через API.
 
 Открытые вопросы и временные решения — в `docs/open-questions.md`.

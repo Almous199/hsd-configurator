@@ -325,57 +325,57 @@
       "zohoItemId": "310335000002847532",
       "name": "PVC coated fabric 1100 gsm blue",
       "unit": "m2",
-      "zohoUnitNow": "m2",
+      "zohoUnitNow": "sq.m",
       "group": "curtain",
       "active": true,
-      "zohoName": "PVC coated fabric 900 gsm blue"
+      "zohoName": "PVC coated fabric blue"
     },
     {
       "sku": "PVC-0.8-yellow",
       "zohoItemId": "310335000002847505",
       "name": "PVC coated fabric 1100 gsm yellow",
       "unit": "m2",
-      "zohoUnitNow": "m2",
+      "zohoUnitNow": "sq.m",
       "group": "curtain",
       "active": true,
-      "zohoName": "PVC coated fabric 900 gsm yellow"
+      "zohoName": "PVC coated fabric yellow"
     },
     {
       "sku": "PVC-0.8-grey",
       "zohoItemId": "310335000003101917",
       "name": "PVC coated fabric 1100 gsm grey",
       "unit": "m2",
-      "zohoUnitNow": "m2",
+      "zohoUnitNow": "sq.m",
       "group": "curtain",
       "active": true,
-      "zohoName": "PVC coated fabric 900 gsm grey"
+      "zohoName": "PVC coated fabric grey"
     },
     {
       "sku": "PVC-0.8-red",
       "zohoItemId": "310335000003101880",
       "name": "PVC coated fabric 1100 gsm red",
       "unit": "m2",
-      "zohoUnitNow": "m2",
+      "zohoUnitNow": "sq.m",
       "group": "curtain",
       "active": true,
-      "zohoName": "PVC coated fabric 900 gsm red"
+      "zohoName": "PVC coated fabric red"
     },
     {
       "sku": "PVCM-1.0-yellow",
       "zohoItemId": "310335000003364298",
       "name": "PVC mesh fabric sealed in transparent yellow PVC",
       "unit": "m2",
-      "zohoUnitNow": "m2",
+      "zohoUnitNow": "sq.m",
       "group": "curtain",
       "active": true,
-      "zohoName": "PVC coated mesh fabric 1100 gsm yellow"
+      "zohoName": "PVC coated mesh fabric yellow"
     },
     {
       "sku": "PVC-2-tr",
       "zohoItemId": "310335000002847583",
       "name": "PVC fabric transparent (окна)",
       "unit": "m2",
-      "zohoUnitNow": "m2",
+      "zohoUnitNow": "sq.m",
       "group": "curtain",
       "active": true,
       "zohoName": "PVC fabric transparent"
@@ -720,7 +720,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "m"
     },
     {
       "sku": "LF-R102-S-SS",
@@ -732,7 +733,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "pair"
     },
     {
       "sku": "LF-R105-S-0.75-L-SS",
@@ -744,7 +746,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "pcs"
     },
     {
       "sku": "LF-R105-S-0.75-R-SS",
@@ -756,7 +759,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "pcs"
     },
     {
       "sku": "LF-R125-1.5-SS",
@@ -768,7 +772,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "m"
     },
     {
       "sku": "LF-R125-2.0-SS",
@@ -780,7 +785,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "m"
     },
     {
       "sku": "LF-R104-1.5-SS",
@@ -792,7 +798,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "pcs"
     },
     {
       "sku": "LF-R104-2.0-SS",
@@ -804,7 +811,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "pcs"
     },
     {
       "sku": "LF-R127-SS",
@@ -816,7 +824,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "m"
     },
     {
       "sku": "LF-R126-SS",
@@ -828,7 +837,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "m"
     },
     {
       "sku": "LF-R129-SS",
@@ -840,7 +850,8 @@
       "group": "ss304",
       "active": true,
       "pendingImport": true,
-      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)"
+      "note": "Ждёт импорта в Zoho (catalogs/ss304_items_zoho_import.csv)",
+      "zohoUnitNow": "pcs"
     },
     {
       "sku": "SDA",
