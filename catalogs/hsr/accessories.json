@@ -1,0 +1,87 @@
+{
+  "_source": "Треды 04 и 05 (Alex 25.11.2026), SKU и названия из Zoho",
+  "standardKit": [
+    {
+      "sku": "WSD-001",
+      "qty": 1,
+      "note": "Беспроводной датчик нижней кромки, стандарт"
+    }
+  ],
+  "photocell": {
+    "pairsStandard": 1,
+    "support": "LF-R041",
+    "supportsPerPair": 2,
+    "sku": null,
+    "note": "Модель фотоэлемента (E3JK-RR12-C или GN50PR07) не выбрана — в спецификацию не входит, только кронштейны"
+  },
+  "accessoriesInAssembly": false,
+  "_accessoriesNote": "Аксессуары из формы продаются отдельными строками SO; в сборку не входят, пока Alex не решит иначе",
+  "types": [
+    {
+      "type": "push_button",
+      "models": [
+        {
+          "id": "1",
+          "sku": "button-1NO",
+          "available": true
+        },
+        {
+          "id": "2",
+          "sku": null,
+          "available": false,
+          "note": "Нет SKU в Zoho"
+        },
+        {
+          "id": "3",
+          "sku": "button-3",
+          "available": true
+        }
+      ]
+    },
+    {
+      "type": "pull_cord",
+      "models": [
+        {
+          "id": "pull",
+          "sku": "button-pull",
+          "available": true
+        }
+      ]
+    },
+    {
+      "type": "radar",
+      "models": [
+        {
+          "id": "Orca",
+          "sku": "Orca",
+          "available": true
+        },
+        {
+          "id": "Pluto",
+          "sku": "Pluto",
+          "available": true
+        },
+        {
+          "id": "Falconeye",
+          "sku": "Falconeye",
+          "available": true
+        }
+      ]
+    },
+    {
+      "type": "loop",
+      "models": [
+        {
+          "id": "Loop",
+          "sku": "Loop",
+          "available": true
+        },
+        {
+          "id": "Loop2",
+          "sku": "Loop2",
+          "available": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,563 @@
+{
+ "_source": "HSR calculation.xlsx, лист 快卷, Q2:AB49 (Lefast). Значения 'a/b' — варианты; 'TopXXXX' — ограничение по верхней секции. Требует проверки.",
+ "rows": [
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 2,
+   "sectionsFromBottom": [
+    930,
+    "452/482/552/652/672/852/952"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    500,
+    652,
+    600
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    930,
+    652,
+    "660/830",
+    "Top1800"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    930,
+    652,
+    "660/860",
+    "Top2400"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    450,
+    482,
+    452,
+    432,
+    "Top1700"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    930,
+    "652\n672",
+    "630\n740",
+    "830\n930",
+    "Top1700\nTop2400"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    930,
+    652,
+    930,
+    930,
+    "Top1800"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    930,
+    692,
+    930,
+    930,
+    "Top2400"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 2,
+   "sectionsFromBottom": [
+    930,
+    "652/672"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    930,
+    "652/672",
+    "830/860/1130"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    960,
+    1232,
+    "830/860"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    930,
+    "652\n672",
+    730,
+    "830\n860",
+    "Top2200及以下\nTop2400"
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    930,
+    652,
+    730,
+    870,
+    1130
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    930,
+    652,
+    800,
+    860,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    930,
+    672,
+    700,
+    670,
+    630
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    930,
+    "672/952",
+    930,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 6,
+   "sectionsFromBottom": [
+    930,
+    672,
+    730,
+    730,
+    630,
+    630
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 6,
+   "sectionsFromBottom": [
+    930,
+    "672/682",
+    780,
+    670,
+    730,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 140,
+   "windbars": 6,
+   "sectionsFromBottom": [
+    930,
+    832,
+    950,
+    930,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 220,
+   "windbars": 6,
+   "sectionsFromBottom": [
+    930,
+    652,
+    920,
+    820,
+    890,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 220,
+   "windbars": 6,
+   "sectionsFromBottom": [
+    930,
+    652,
+    930,
+    830,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 220,
+   "windbars": 7,
+   "sectionsFromBottom": [
+    930,
+    672,
+    890,
+    830,
+    830,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 220,
+   "windbars": 7,
+   "sectionsFromBottom": [
+    930,
+    932,
+    830,
+    830,
+    830,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 220,
+   "windbars": 7,
+   "sectionsFromBottom": [
+    930,
+    "1152/972",
+    930,
+    830,
+    890,
+    830,
+    890
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 220,
+   "windbars": 7,
+   "sectionsFromBottom": [
+    930,
+    1152,
+    1050,
+    1050,
+    1030,
+    1030,
+    830
+   ]
+  },
+  {
+   "windowType": "2nd Window - STD",
+   "shaftDia": 220,
+   "windbars": 8,
+   "sectionsFromBottom": [
+    930,
+    852,
+    930,
+    970,
+    930,
+    930,
+    930,
+    830
+   ]
+  },
+  {
+   "windowType": "Full Tramsparent",
+   "shaftDia": 110,
+   "windbars": 2,
+   "sectionsFromBottom": [
+    "452/552/652/852/952/1052/1252",
+    "452/552/852/952/1052/1252"
+   ]
+  },
+  {
+   "windowType": "Full Tramsparent",
+   "shaftDia": 110,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    952,
+    952,
+    952
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 110,
+   "windbars": 2,
+   "sectionsFromBottom": [
+    930,
+    "430/480/630/860/930"
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 110,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    930,
+    930,
+    930
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 110,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    930,
+    890,
+    830,
+    "Top1800"
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 140,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    930,
+    890,
+    830,
+    "Top1800"
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    930,
+    970,
+    930,
+    930
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 110,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    930,
+    "630/650",
+    970,
+    930,
+    930
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 140,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    830,
+    830,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 140,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    930,
+    930,
+    930,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 140,
+   "windbars": 7,
+   "sectionsFromBottom": [
+    930,
+    870,
+    830,
+    930,
+    930,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 220,
+   "windbars": 8,
+   "sectionsFromBottom": [
+    930,
+    920,
+    970,
+    830,
+    830,
+    830,
+    830,
+    830
+   ]
+  },
+  {
+   "windowType": "No Window",
+   "shaftDia": 220,
+   "windbars": 9,
+   "sectionsFromBottom": [
+    930,
+    950,
+    830,
+    930,
+    830,
+    930,
+    830,
+    930,
+    930
+   ]
+  },
+  {
+   "windowType": "3th Window",
+   "shaftDia": 110,
+   "windbars": 3,
+   "sectionsFromBottom": [
+    530,
+    660,
+    652
+   ]
+  },
+  {
+   "windowType": "3th Window",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    480,
+    480,
+    652,
+    660
+   ]
+  },
+  {
+   "windowType": "3th Window",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    530,
+    730,
+    652,
+    660
+   ]
+  },
+  {
+   "windowType": "3th Window",
+   "shaftDia": 110,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    530,
+    660,
+    652,
+    850
+   ]
+  },
+  {
+   "windowType": "3th Window",
+   "shaftDia": 110,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    630,
+    570,
+    652,
+    660,
+    660,
+    221086
+   ]
+  },
+  {
+   "windowType": "2nd and 4th Window",
+   "shaftDia": 110,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    630,
+    702,
+    670,
+    632,
+    580
+   ]
+  },
+  {
+   "windowType": "3th Window",
+   "shaftDia": 140,
+   "windbars": 5,
+   "sectionsFromBottom": [
+    530,
+    600,
+    652,
+    890,
+    670
+   ]
+  },
+  {
+   "windowType": "2nd and 4th Window",
+   "shaftDia": 140,
+   "windbars": 4,
+   "sectionsFromBottom": [
+    930,
+    "702视窗",
+    850,
+    "702视窗",
+    "Top"
+   ]
+  }
+ ],
+ "_status": "Только справочник, в расчёт не подключён (решение по высотам секций — тред полотна)"
+}

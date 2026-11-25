@@ -1,0 +1,88 @@
+{
+  "_source": "HSR calculation.xlsx 快卷 D5/D9/K9/K15/K20 + таблица пространств ревизия 2020.09.09; SKU по Zoho",
+  "items": [
+    {
+      "id": "alu-hjg1765",
+      "name": "Алюминий HJG-1765",
+      "size": {
+        "w": 130,
+        "d": 90
+      },
+      "active": true,
+      "offsets": {
+        "curtainWidth": 140,
+        "headerLength": 230,
+        "shaftLength": 120
+      },
+      "columnLength": {
+        "plusH": 200
+      },
+      "qty": 2,
+      "roles": {
+        "rail": "LF-R025",
+        "brush": "LF-R026",
+        "wearStrip": "LF-R027",
+        "cover": "LF-R028",
+        "topBracket": "LF-R004",
+        "footBracket": "LF-R029",
+        "guidePad": "LF-R011",
+        "photocellSupport": "LF-R041"
+      }
+    },
+    {
+      "id": "ss304",
+      "name": "Нерж. SS304, 1,5 мм (H≤3500) / 2,0 мм (H>3500)",
+      "size": {
+        "w": 92,
+        "d": 96
+      },
+      "active": true,
+      "offsets": {
+        "curtainWidth": 105,
+        "headerLength": 184,
+        "shaftLength": 74
+      },
+      "columnLength": {
+        "plusH": 200
+      },
+      "qty": 2,
+      "roles": {
+        "rail": "LF-R125-1.5-SS | LF-R125-2.0-SS (по H)",
+        "seal": "LF-R126-SS",
+        "fittingStrip": "LF-R127-SS",
+        "topBracket": "LF-R104-1.5-SS | LF-R104-2.0-SS",
+        "footBracket": "LF-R129-SS",
+        "guidePad": "LF-R011",
+        "photocellSupport": "LF-R041"
+      },
+      "note": "Выбор через frame-materials.json. Толщина по высоте проёма (Lefast ITEMIZED 2026.09.08).",
+      "orderOption": "Stainless steel",
+      "verified": false
+    },
+    {
+      "id": "galv-2.0-rubber",
+      "name": "Оцинковка 2,0 мм + резина",
+      "size": {
+        "w": 92,
+        "d": 96
+      },
+      "active": false,
+      "offsets": {
+        "curtainWidth": 105,
+        "headerLength": 184,
+        "shaftLength": 74
+      },
+      "columnLength": {
+        "plusH": 200
+      },
+      "qty": 2,
+      "roles": {},
+      "note": "В Zoho артикулов нет"
+    }
+  ],
+  "_notes": [
+    "Ширина полотна W+140 = Lefast W+150−10; сталь ещё −35.",
+    "Длина короба W+230 = W+236−6; сталь ещё −46.",
+    "Вал W+120; сталь W+74. Ошибка Excel K20 (алюминий получал −46) исправлена."
+  ]
+}

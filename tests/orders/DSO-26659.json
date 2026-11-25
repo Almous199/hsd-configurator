@@ -1,0 +1,27 @@
+{
+  "_about": "Реальный заказ DSO-26659 Type 2 (JSCG, 5 ворот), чертёж 11.02.2026, папка HSD constructor / SDA confirmation form.dxf. Вход переписан в схему заказа v1. Сторона пульта на чертеже — сторона мотора (блок на высоте 1200).",
+  "schemaVersion": "1.0",
+  "productType": "hsr",
+  "id": "DSO-26659-2",
+  "revision": 1,
+  "order": {
+    "status": "draft",
+    "salesorderNumber": "DSO-26659",
+    "salesorderItem": 2,
+    "customer": { "name": "JSCG" },
+    "deliveryAddress": "259/319 Sukhumvit 71 Road Prakanongnua, Wattana, Bangkok 10110",
+    "reference": "Type 2 · 5 doors"
+  },
+  "opening": { "width": 2000, "height": 2600, "quantity": 5 },
+  "options": {
+    "model": "SDA",
+    "supply": "own",
+    "frameMaterial": "alu-galv",
+    "pvc": "mesh-blue",
+    "driveSide": "L",
+    "controlSide": "L",
+    "controlBoxHeight": 1200,
+    "accessories": [ { "type": "radar", "sku": "Orca", "qty": 1 } ],
+    "overrides": []
+  }
+}

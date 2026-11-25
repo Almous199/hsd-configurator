@@ -1,0 +1,396 @@
+{
+ "_source": "02-curtain/standard-layouts.csv, версия 4 от 25.11.2026 (тред 02). Высоты эффективные, снизу вверх, без верхней секции.",
+ "rule": "Число ветровиков — windbarsByHeight (Top1800 по строкам Lefast). Высоты секций ниже верхней — из строки того же вала и того же числа ветровиков с наибольшей H ≤ H заказа (если такой нет — с наименьшей H). Верхняя секция — остаток.",
+ "rows": [
+  {
+   "shaftDia": 114,
+   "H": 2000,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    660,
+    520
+   ],
+   "windowSection": 2,
+   "topVisible": 605,
+   "topEff": 1300,
+   "windowBottomFromFloor": 835,
+   "minAngle": 165,
+   "idealAngle": 180,
+   "rollDia": 152
+  },
+  {
+   "shaftDia": 114,
+   "H": 2250,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    910,
+    520
+   ],
+   "windowSection": 2,
+   "topVisible": 605,
+   "topEff": 1300,
+   "windowBottomFromFloor": 1085,
+   "minAngle": 165,
+   "idealAngle": 180,
+   "rollDia": 153
+  },
+  {
+   "shaftDia": 114,
+   "H": 2500,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    570
+   ],
+   "windowSection": 2,
+   "topVisible": 715,
+   "topEff": 1410,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 151,
+   "idealAngle": 180,
+   "rollDia": 153
+  },
+  {
+   "shaftDia": 114,
+   "H": 2750,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    580
+   ],
+   "windowSection": 2,
+   "topVisible": 955,
+   "topEff": 1650,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 147,
+   "idealAngle": 180,
+   "rollDia": 155
+  },
+  {
+   "shaftDia": 114,
+   "H": 3000,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    580
+   ],
+   "windowSection": 2,
+   "topVisible": 1205,
+   "topEff": 1900,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 152,
+   "idealAngle": 180,
+   "rollDia": 155
+  },
+  {
+   "shaftDia": 114,
+   "H": 3250,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    590
+   ],
+   "windowSection": 2,
+   "topVisible": 1445,
+   "topEff": 2140,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 148,
+   "idealAngle": 180,
+   "rollDia": 157
+  },
+  {
+   "shaftDia": 114,
+   "H": 3500,
+   "windbars": 3,
+   "sectionsBelowTop": [
+    1000,
+    630,
+    1000
+   ],
+   "windowSection": 2,
+   "topVisible": 615,
+   "topEff": 1310,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 107,
+   "idealAngle": 120,
+   "rollDia": 158
+  },
+  {
+   "shaftDia": 114,
+   "H": 3750,
+   "windbars": 3,
+   "sectionsBelowTop": [
+    1000,
+    630,
+    1000
+   ],
+   "windowSection": 2,
+   "topVisible": 865,
+   "topEff": 1560,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 115,
+   "idealAngle": 120,
+   "rollDia": 160
+  },
+  {
+   "shaftDia": 114,
+   "H": 4000,
+   "windbars": 3,
+   "sectionsBelowTop": [
+    1000,
+    630,
+    1000
+   ],
+   "windowSection": 2,
+   "topVisible": 1115,
+   "topEff": 1810,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 110,
+   "idealAngle": 120,
+   "rollDia": 160
+  },
+  {
+   "shaftDia": 140,
+   "H": 2000,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    600,
+    580
+   ],
+   "windowSection": 2,
+   "topVisible": 605,
+   "topEff": 1406,
+   "windowBottomFromFloor": 775,
+   "minAngle": 122,
+   "idealAngle": 180,
+   "rollDia": 176
+  },
+  {
+   "shaftDia": 140,
+   "H": 2250,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    820,
+    610
+   ],
+   "windowSection": 2,
+   "topVisible": 605,
+   "topEff": 1406,
+   "windowBottomFromFloor": 995,
+   "minAngle": 145,
+   "idealAngle": 180,
+   "rollDia": 178
+  },
+  {
+   "shaftDia": 140,
+   "H": 2500,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    630
+   ],
+   "windowSection": 2,
+   "topVisible": 655,
+   "topEff": 1456,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 160,
+   "idealAngle": 180,
+   "rollDia": 178
+  },
+  {
+   "shaftDia": 140,
+   "H": 2750,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    630
+   ],
+   "windowSection": 2,
+   "topVisible": 905,
+   "topEff": 1706,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 157,
+   "idealAngle": 180,
+   "rollDia": 179
+  },
+  {
+   "shaftDia": 140,
+   "H": 3000,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    630
+   ],
+   "windowSection": 2,
+   "topVisible": 1155,
+   "topEff": 1956,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 153,
+   "idealAngle": 180,
+   "rollDia": 179
+  },
+  {
+   "shaftDia": 140,
+   "H": 3250,
+   "windbars": 2,
+   "sectionsBelowTop": [
+    1000,
+    630
+   ],
+   "windowSection": 2,
+   "topVisible": 1405,
+   "topEff": 2206,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 150,
+   "idealAngle": 180,
+   "rollDia": 181
+  },
+  {
+   "shaftDia": 140,
+   "H": 3500,
+   "windbars": 3,
+   "sectionsBelowTop": [
+    1000,
+    600,
+    600
+   ],
+   "windowSection": 2,
+   "topVisible": 1045,
+   "topEff": 1846,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 101,
+   "idealAngle": 120,
+   "rollDia": 181
+  },
+  {
+   "shaftDia": 140,
+   "H": 3750,
+   "windbars": 3,
+   "sectionsBelowTop": [
+    1000,
+    610,
+    600
+   ],
+   "windowSection": 2,
+   "topVisible": 1285,
+   "topEff": 2086,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 99,
+   "idealAngle": 120,
+   "rollDia": 183
+  },
+  {
+   "shaftDia": 140,
+   "H": 4000,
+   "windbars": 3,
+   "sectionsBelowTop": [
+    1000,
+    620,
+    600
+   ],
+   "windowSection": 2,
+   "topVisible": 1525,
+   "topEff": 2326,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 97,
+   "idealAngle": 120,
+   "rollDia": 183
+  },
+  {
+   "shaftDia": 140,
+   "H": 4250,
+   "windbars": 3,
+   "sectionsBelowTop": [
+    1000,
+    620,
+    600
+   ],
+   "windowSection": 2,
+   "topVisible": 1775,
+   "topEff": 2576,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 103,
+   "idealAngle": 120,
+   "rollDia": 184
+  },
+  {
+   "shaftDia": 140,
+   "H": 4500,
+   "windbars": 4,
+   "sectionsBelowTop": [
+    1000,
+    550,
+    600,
+    1000
+   ],
+   "windowSection": 2,
+   "topVisible": 1055,
+   "topEff": 1856,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 76,
+   "idealAngle": 90,
+   "rollDia": 184
+  },
+  {
+   "shaftDia": 140,
+   "H": 4750,
+   "windbars": 4,
+   "sectionsBelowTop": [
+    1000,
+    570,
+    600,
+    1000
+   ],
+   "windowSection": 2,
+   "topVisible": 1285,
+   "topEff": 2086,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 76,
+   "idealAngle": 90,
+   "rollDia": 186
+  },
+  {
+   "shaftDia": 140,
+   "H": 5000,
+   "windbars": 4,
+   "sectionsBelowTop": [
+    1000,
+    610,
+    660,
+    800
+   ],
+   "windowSection": 2,
+   "topVisible": 1635,
+   "topEff": 2436,
+   "windowBottomFromFloor": 1175,
+   "minAngle": 81,
+   "idealAngle": 90,
+   "rollDia": 186
+  }
+ ],
+ "windbarsByHeight": {
+  "_source": "Тред 02 (layout_search.py, nlef): число ветровиков по строкам Lefast «2nd Window STD» с пределом Top1800 до верха направляющей",
+  "114": [
+   {
+    "maxH": 3414,
+    "windbars": 2
+   },
+   {
+    "windbars": 3
+   }
+  ],
+  "140": [
+   {
+    "maxH": 3434,
+    "windbars": 2
+   },
+   {
+    "maxH": 4336,
+    "windbars": 3
+   },
+   {
+    "windbars": 4
+   }
+  ]
+ }
+}

@@ -1,0 +1,32 @@
+{
+  "_source": "Тред 06 (Alex 25.11.2026): импорт CSV сборок в Zoho Inventory",
+  "warehouse": "Main Warehouse",
+  "numberFormat": "BUN-{orderId}  (orderId = DSO-<SO>-<позиция> без префикса DSO-: BUN-26217-1)",
+  "assemblies": [
+    {
+      "sku": "SDA-DS",
+      "name": "High-speed PVC door Dasima",
+      "sections": [
+        "curtain",
+        "header",
+        "guides",
+        "drive"
+      ],
+      "note": "Ворота целиком, своё производство"
+    },
+    {
+      "sku": "DUS-055",
+      "name": "SDA curtain set assembly",
+      "sections": [
+        "curtain"
+      ],
+      "note": "Только полотно"
+    }
+  ],
+  "noAssembly": [
+    {
+      "sku": "SDA",
+      "note": "Ворота, заказанные на стороне: сборка не создаётся"
+    }
+  ]
+}

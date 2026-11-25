@@ -1,0 +1,60 @@
+{
+  "_source": "HSR calculation.xlsx 快卷 K10–K12, Лист1; SKU по Zoho",
+  "windbar": [
+    {
+      "id": "hjg1792",
+      "name": "Ветровик HJG-1792",
+      "sku": "LF-R031",
+      "plug": "LF-R032",
+      "maxCurtainWidth": 5000,
+      "nylonRod": "LF-R043"
+    },
+    {
+      "id": "reinforced",
+      "name": "Ветровик усиленный",
+      "sku": null,
+      "minCurtainWidthExclusive": 5000,
+      "note": "Артикула нет"
+    }
+  ],
+  "windbarCount": {
+    "min": 2,
+    "max": 9
+  },
+  "bottom": [
+    {
+      "id": "hjg1793",
+      "name": "Нижний профиль HJG-1793",
+      "sku": "LF-R033",
+      "plug": "LF-R035",
+      "seal": "LF-R036",
+      "maxCurtainWidth": 5000
+    },
+    {
+      "id": "reinforced",
+      "name": "Нижний профиль усиленный",
+      "sku": null,
+      "minCurtainWidthExclusive": 5000
+    }
+  ],
+  "geometry": {
+    "windbarPitch": {
+      "value": 41.26,
+      "verified": false,
+      "note": "Из формулы Lefast D11; намотка использует w=50 — решается в треде полотна"
+    }
+  },
+  "pvc": {
+    "colors": {
+      "blue": "PVC-0.8-blue",
+      "yellow": "PVC-0.8-yellow",
+      "grey": "PVC-0.8-grey",
+      "red": "PVC-0.8-red"
+    },
+    "mesh": {
+      "yellow": "PVCM-1.0-yellow"
+    },
+    "window": "PVC-2-tr",
+    "areaRule": "по площади заготовки, без % отхода (Alex 25.11)"
+  }
+}
