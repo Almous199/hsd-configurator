@@ -50,7 +50,7 @@ const TH = {
   axleDrive: 'แกนด้านมอเตอร์', axleOther: 'แกนอีกด้าน', bearings: 'ตลับลูกปืน', lockCup: 'ถ้วยล็อก', driveSub: 'มอเตอร์ · Powever A2 (ติดตั้งด้านนอกเท่านั้น)',
   motor: 'มอเตอร์', ctrlUnit: 'ตู้ควบคุม', driveBracket: 'ขายึดมอเตอร์', byReducer: 'ตามเกียร์มอเตอร์', motorCover: 'ฝาครอบมอเตอร์', bumper: 'ตัวกันกระแทก', cable: 'สายไฟ',
   topView: 'เพลา แกน และตลับลูกปืน · มุมมองด้านบน', boxSection: 'หน้าตัดกล่อง · ตรวจม้วน', exit: 'ออกโดยไม่บันทึก', toSpec: 'สเปค →',
-  specTitle: 'สเปค', specSub: 'สร้างจากการคำนวณ · เปลี่ยนรายการ แก้จำนวน · การแก้ไขด้วยมือจะถูกไฮไลต์', backCalc: '← คำนวณ', save: 'บันทึก — เสร็จสิ้นการคำนวณ',
+  specTitle: 'สเปค', specSub: 'สร้างจากการคำนวณ · เปลี่ยนรายการ แก้จำนวน · การแก้ไขด้วยมือจะถูกไฮไลต์', backCalc: '← คำนวณ', save: 'บันทึก — เสร็จสิ้นการคำนวณ', saveShort: 'บันทึก',
   edit: 'แก้ไข', copy: 'คัดลอก', backSpecs: '← รายการสเปค', zohoAsm: 'การประกอบใน Zoho', asmAll: 'ทั้งประตู · แผ่น 1–3', asmCur: 'เฉพาะม่าน · แผ่น 1',
   no: 'เลขที่', qtyAsm: 'จำนวนประกอบ', date: 'วันที่', csv: 'ส่งออก CSV สำหรับ Zoho', printSheets: 'แผ่นที่จะพิมพ์', print: 'พิมพ์ / PDF',
 };
@@ -314,7 +314,15 @@ function renderBlock3() {
   $('pv3').innerHTML = topView(); $('pv3b').innerHTML = boxSection();
 }
 
+function updateSave() {
+  const blocked = R.calc.status !== 'ok'; const noId = !idOf(ST.doc);
+  ['btnSave', 'btnSave2'].forEach((b) => { $(b).disabled = blocked || noId; });
+  const hint = blocked ? (LANG === 'th' ? 'แก้ข้อผิดพลาดก่อนบันทึก' : 'fix the errors to save') : noId ? (LANG === 'th' ? 'ใส่เลขที่คำสั่งซื้อเพื่อบันทึก' : 'enter the order number (DSO-) to save') : '';
+  document.querySelectorAll('[data-save-hint]').forEach((e) => { e.textContent = hint; });
+}
+
 function renderStatus() {
+  updateSave();
   const e = R.calc.errors; const w = R.calc.warnings;
   const sup = ST.doc.options.supply === 'outsourced' ? ['<div class="w">⚑ Supply SDA (bought): calculated as SDA-DS, becomes SDA-DS on Save</div>'] : [];
   $('msgs').innerHTML = (e.length || w.length || sup.length)
@@ -589,7 +597,7 @@ function renderSpec() {
   document.querySelectorAll('input[name=asm]').forEach((r) => { r.checked = r.value === ST.assembly; });
   $('bun').textContent = d.id ? 'BUN-' + d.id.replace(/^DSO-/i, '') : '—';
   $('asmQty').textContent = c.opening.quantity; $('asmDate').value = ST.asmDate;
-  $('btnCsv').disabled = blocked; $('btnSave').disabled = blocked || !idOf(d);
+  $('btnCsv').disabled = blocked; updateSave();
   if (blocked) { $('sheets').innerHTML = '<div class="errbox">Specification is not available: fix the errors in the calculator.</div>'; return; }
   const qtyTotal = c.opening.quantity;
   const hdr = (s) => `<div class="sheet-h"><div class="meta"><div><span>Order no.</span><b>${esc(d.id || '—')}</b> · ${c.opening.width} × ${c.opening.height} · SDA-DS · ${esc(matLabel)}</div><div><span>Customer</span>${esc(d.order.customer?.name || '')}</div></div><div class="ttl"><b>${s.no} · ${s.title}</b><small>QTY: ${qtyTotal}${s.no === 1 ? ' · = DUS-055' : ''}${ST.assembly === 'DUS-055' && s.no > 1 ? ' · not in DUS-055' : ''}</small></div></div>`;
@@ -704,7 +712,7 @@ async function save() {
     render(); tab('spec');
   } catch (e) { alert('Save failed: ' + e.message); }
 }
-$('btnSave').onclick = save;
+$('btnSave').onclick = save; $('btnSave2').onclick = save;
 document.querySelectorAll('.exit').forEach((b) => b.onclick = () => {
   if (ST.dirty && !confirm('Leave without saving?')) return;
   location.href = `${SPECS_URL}?lang=${LANG}`;

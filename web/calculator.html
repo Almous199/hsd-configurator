@@ -65,6 +65,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .btn:disabled{opacity:.45;cursor:default}
 .btn-primary{background:var(--c-accent);color:#fff;border-color:var(--c-accent)}
 .btn-primary:hover{background:#13497f}
+.btn-save{background:#2e7d32;color:#fff;border-color:#2e7d32;font-weight:600}.save-hint{font-size:12px;color:var(--c-danger,#c62828)}
 .btn-ok{background:var(--c-success-bg);color:var(--c-success);border-color:#b7d8b8}
 .btn-sm{padding:2px 9px;font-size:12px}
 .seg{display:inline-flex;border:.5px solid var(--c-border2);border-radius:var(--r);overflow:hidden}
@@ -307,7 +308,9 @@ body:not(.view) .view-only{display:none!important}
 </div>
 <div class="calc-bar">
   <span class="st" id="calcSt"></span><span class="sp"></span>
+  <span class="save-hint edit-only" data-save-hint></span>
   <button class="btn exit" data-i="exit">Exit without changes</button>
+  <button class="btn btn-save edit-only" id="btnSave2" data-i="saveShort">Save</button>
   <button class="btn btn-primary" data-go="spec" data-i="toSpec">Specification →</button>
 </div>
 </div>
@@ -318,7 +321,8 @@ body:not(.view) .view-only{display:none!important}
   <div class="sec-head"><h1 data-i="specTitle">Specification</h1><p data-i="specSub">Built from the calculator · replace items, change quantity · manual changes are highlighted</p></div>
   <div class="tbar">
     <button class="btn edit-only" data-go="calc" data-i="backCalc">← Calculator</button>
-    <button class="btn btn-ok edit-only" id="btnSave" data-i="save">Save — finish calculation</button>
+    <button class="btn btn-save edit-only" id="btnSave" data-i="save">Save — finish calculation</button>
+    <span class="save-hint edit-only" data-save-hint></span>
     <button class="btn exit edit-only" data-i="exit">Exit without changes</button>
     <button class="btn btn-primary view-only" id="btnEdit" data-i="edit">Edit</button>
     <button class="btn view-only" id="btnCopy" data-i="copy">Copy</button>
