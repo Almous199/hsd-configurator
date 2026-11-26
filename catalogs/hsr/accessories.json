@@ -11,11 +11,13 @@
     "pairsStandard": 1,
     "support": "LF-R041",
     "supportsPerPair": 2,
+    "levelDefault": 400,
+    "_levelNote": "Уровень по умолчанию 400 мм от пола, стандарт 1 пара (Alex 26.11)",
     "sku": null,
     "note": "Модель фотоэлемента (E3JK-RR12-C или GN50PR07) не выбрана — в спецификацию не входит, только кронштейны"
   },
-  "accessoriesInAssembly": false,
-  "_accessoriesNote": "Аксессуары из формы продаются отдельными строками SO; в сборку не входят, пока Alex не решит иначе",
+  "accessoriesInAssembly": true,
+  "_accessoriesNote": "Аксессуары из заказа (радар, кнопочный пост и др.) входят в сборку SDA-DS (Alex 26.11)",
   "types": [
     {
       "type": "push_button",

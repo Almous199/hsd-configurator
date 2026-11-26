@@ -40,6 +40,8 @@ export function normalizeInput(order, messages) {
     pvc: o.pvc || 'blue',
     pvcThickness: o.pvcThickness,
     clearThickness: o.clearThickness,
+    profileThickness: o.profileThickness,
+    photocells: normalizePhotocells(o.photocells, H, messages),
     driveSide, controlSide,
     controlBoxHeight: o.controlBoxHeight,
     extraWindbars: (o.sections && o.sections.extraWindbars) || 0,
@@ -47,4 +49,17 @@ export function normalizeInput(order, messages) {
     accessories: o.accessories || [],
     options: o,
   };
+}
+
+/** Фотоэлементы: пары (1 стандарт, 2 опция) и уровни от пола; по умолчанию 1 пара на 400 мм (Alex 26.11). */
+function normalizePhotocells(pc, H, messages) {
+  const pairs = pc && pc.pairs != null ? Number(pc.pairs) : 1;
+  const def = [400, 1000];
+  const levels = [];
+  for (let i = 0; i < pairs; i++) levels.push(Math.round(Number((pc && pc.levels && pc.levels[i]) ?? def[i] ?? def[0])));
+  if (![1, 2].includes(pairs)) messages.push(error('PHOTOCELL_PAIRS', 'Фотоэлементов: 1 или 2 пары'));
+  for (const l of levels) {
+    if (!(l > 0) || (H > 0 && l >= H)) messages.push(error('PHOTOCELL_LEVEL', `Уровень фотоэлемента ${l} мм вне проёма`));
+  }
+  return { pairs, levels };
 }

@@ -1,7 +1,7 @@
-// Собирает форму заказа в один HTML-файл: dist/sda-order-form.html.
+// Собирает страницы в одиночные HTML-файлы: dist/sda-order-form.html (форма заказа) и dist/sda-calculator.html (калькулятор).
 // Модули ядра и формы встраиваются как текст и подключаются через blob:-URL (порядок — от листьев к форме),
 // каталоги встраиваются в window.__CATALOGS__. Файл открывается двойным щелчком, без сервера и интернета.
-// Запуск: npm run build (dist/ лежит в репозитории, чтобы файл можно было скачать с GitHub; тест сверяет его со свежей сборкой)
+// Запуск: npm run build [папка вывода, по умолчанию dist/] (dist/ лежит в репозитории, чтобы файл можно было скачать с GitHub; тест сверяет его со свежей сборкой)
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,30 +10,36 @@ import { loadCatalogs } from '../core/load-catalogs.js';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const IMPORT_RE = /^import\s+[^;]*?\s+from\s+'(\.{1,2}\/[^']+)';?$/gm;
 
-// Обход графа модулей: post-order, чтобы зависимости шли раньше.
-const order = [];
-const sources = new Map();
-function visit(abs) {
-  if (sources.has(abs)) return;
-  const src = readFileSync(abs, 'utf8');
-  sources.set(abs, src);
-  for (const m of src.matchAll(IMPORT_RE)) visit(resolve(dirname(abs), m[1]));
-  order.push(abs);
-}
-const entry = join(root, 'web/app.js');
-visit(entry);
-
 const key = (abs) => relative(root, abs).replaceAll('\\', '/');
-const modules = order.map((abs) => ({
-  key: key(abs),
-  // относительные пути импорта → ключи модулей; загрузчик заменит их на blob:-URL
-  src: sources.get(abs).replace(IMPORT_RE, (line, spec) => line.replace(`'${spec}'`, `'@mod:${key(resolve(dirname(abs), spec))}'`)),
-}));
-
 const catalogs = loadCatalogs().hsr;
 const json = (v) => JSON.stringify(v).replaceAll('</', '<\\/');
+const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
-const loader = `
+const PAGES = [
+  { html: 'web/index.html', entry: 'web/app.js', out: 'sda-order-form.html' },
+  { html: 'web/calculator.html', entry: 'web/calculator.js', out: 'sda-calculator.html' },
+];
+
+function build(page, outDir) {
+  // Обход графа модулей: post-order, чтобы зависимости шли раньше.
+  const order = [];
+  const sources = new Map();
+  function visit(abs) {
+    if (sources.has(abs)) return;
+    const src = readFileSync(abs, 'utf8');
+    sources.set(abs, src);
+    for (const m of src.matchAll(IMPORT_RE)) visit(resolve(dirname(abs), m[1]));
+    order.push(abs);
+  }
+  const entry = join(root, page.entry);
+  visit(entry);
+  const modules = order.map((abs) => ({
+    key: key(abs),
+    // относительные пути импорта → ключи модулей; загрузчик заменит их на blob:-URL
+    src: sources.get(abs).replace(IMPORT_RE, (line, spec) => line.replace(`'${spec}'`, `'@mod:${key(resolve(dirname(abs), spec))}'`)),
+  }));
+
+  const loader = `
 window.__CATALOGS__ = ${json(catalogs)};
 (function () {
   const mods = ${json(modules)};
@@ -47,13 +53,16 @@ window.__CATALOGS__ = ${json(catalogs)};
   });
 })();`;
 
-let html = readFileSync(join(root, 'web/index.html'), 'utf8');
-const tag = '<script type="module" src="./app.js"></script>';
-if (!html.includes(tag)) throw new Error(`В web/index.html нет строки ${tag}`);
-const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-html = html.replace(tag, () => `<!-- собрано scripts/build-standalone.js, ${pkg.name} ${pkg.version} -->\n<script>${loader}\n</script>`);
+  let html = readFileSync(join(root, page.html), 'utf8');
+  const tag = `<script type="module" src="./${page.entry.split('/').pop()}"></script>`;
+  if (!html.includes(tag)) throw new Error(`В ${page.html} нет строки ${tag}`);
+  html = html.replace(tag, () => `<!-- собрано scripts/build-standalone.js, ${pkg.name} ${pkg.version} -->\n<script>${loader}\n</script>`);
 
-const out = resolve(process.argv[2] || join(root, 'dist/sda-order-form.html'));
-mkdirSync(dirname(out), { recursive: true });
-writeFileSync(out, html);
-console.log(`${relative(root, out)}: ${modules.length} модулей, ${(html.length / 1024).toFixed(0)} КБ`);
+  const out = join(outDir, page.out);
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(out, html);
+  console.log(`${relative(root, out)}: ${modules.length} модулей, ${(html.length / 1024).toFixed(0)} КБ`);
+}
+
+const outDir = resolve(process.argv[2] || join(root, 'dist'));
+for (const page of PAGES) build(page, outDir);

@@ -7,6 +7,8 @@
 //   Ветровик и низ HJG-1792/1793 до ширины полотна 5000, шире — усиленный (артикула нет).
 import { error, warning } from '../../core/messages.js';
 import { calcLayout } from './layout.js';
+import { windCurtain } from './winding.js';
+import { pitchesFromEffective, barCentres } from './pitch.js';
 
 export function calcCurtain(inp, frame, cat, messages) {
   const cur = cat.curtain;
@@ -63,12 +65,27 @@ export function calcCurtain(inp, frame, cat, messages) {
   // Ткань
   const pvcSku = resolvePvcSku(inp.pvc, cat, messages);
 
-  // Оценка диаметра рулона: спираль Архимеда по толщине ПВХ + утолщение профилей (модель треда 02).
-  // Длина намотки ≈ H + 200 (ход полотна при открытии). Это проверка, не размер для производства.
+  // Намотка с утолщением от профилей (winding.js): углы ветровиков на рулоне и Ø рулона открытых ворот.
   const t = inp.pvcThickness ?? cur.winding.pvcThickness;
-  const R0 = D / 2;
-  const wound = inp.H + cur.guideAboveOpening;
-  const rollDiameter = Math.round(2 * Math.sqrt(R0 * R0 + (t * wound) / Math.PI) + 2 * cur.winding.profileThickness);
+  const tClear = inp.clearThickness ?? cur.winding.clearThickness;
+  const tProfile = inp.profileThickness ?? cur.winding.profileThickness;
+  const winding = windCurtain({
+    shaftDia: D,
+    length: lengthExact,
+    hangLength: cur.guideAboveOpening + plateH / 2 - D / 2,
+    sections: sections.map((x) => ({ h: x.h, transparent: x.transparent })),
+    windbar: cur.effective.windbar,
+    windbarOuter: cur.effective.windbarOuter,
+    tPvc: t, tClear, tProfile,
+  });
+  const rollDiameter = winding.rollDiameter;
+  if (windbars > 1 && !winding.okAngle) {
+    messages.push(warning('WINDBARS_OVERLAP',
+      `Ветровики на рулоне ближе ${Math.round(0.8 * winding.idealAngle)}° (мин. ${Math.round(winding.minAngle)}° при идеале ${Math.round(winding.idealAngle)}°)`));
+  }
+
+  // Высоты по центрам ветровиков (калькулятор): сумма = H + 200
+  const pitches = pitchesFromEffective(below, layout.topVisible, cur);
 
   return {
     width,
@@ -87,7 +104,12 @@ export function calcCurtain(inp, frame, cat, messages) {
     bottomProfile: { id: bottom.id, sku: bottom.sku, plug: bottom.plug, seal: bottom.seal, length: width },
     nylonLength: (2 * windbars + 1) * width,
     pvcThickness: t,
+    clearThickness: tClear,
+    profileThickness: tProfile,
     rollDiameter,
+    winding,
+    pitches,
+    barCentres: barCentres(pitches),
   };
 }
 

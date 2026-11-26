@@ -29,7 +29,7 @@ npm test                          # все тесты
 npm run check:catalogs            # все SKU из каталогов есть в items.json
 node scripts/calc-order.js tests/orders/DSO-26659.json --csv SDA-DS --date 2026-11-25
 npm run sync:zoho                 # названия товаров в items.json по SKU из снимка Zoho
-npm run build                     # собрать форму в один файл dist/sda-order-form.html
+npm run build                     # собрать форму и калькулятор: dist/sda-order-form.html, dist/sda-calculator.html
 npm run serve                     # форма для разработки: http://localhost:8080/web/
 ```
 
@@ -40,6 +40,8 @@ npm run serve                     # форма для разработки: http
 и CSV сборки берутся из ядра. Внизу — бланк согласования (EN + TH) для печати.
 
 `dist/sda-order-form.html` — та же форма одним файлом (ядро и каталоги внутри). Открывается двойным щелчком, без сервера.
+
+`dist/sda-calculator.html` — калькулятор SDA (вкладки Calculator / Specification, разделы 0–3; исходник `web/calculator.html` + `web/calculator.js`). Сохраняет спецификацию в общую рабочую папку справочника `specs.html` (`calcs/index.json` + `calcs/<id>.json`, File System Access API, Chrome/Edge), без папки — в localStorage этого браузера. При сохранении замораживает форму заказа с тем же номером (`forms/<id>.json`). Высоты секций в калькуляторе — по центрам ветровиков (нижняя от низа резинового уплотнителя, верхняя до низа короба, сумма = H + 200); намотка с утолщением от ветровиков — `products/hsr/winding.js`.
 Его можно скачать с GitHub. После любой правки кода или каталогов нужно выполнить `npm run build`, иначе тест напомнит.
 
 Пока сервера нет: «Save order (JSON)» сохраняет заказ в файл, «Open order…» открывает его обратно, кнопка «Load from Zoho»

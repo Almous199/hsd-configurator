@@ -66,13 +66,13 @@ export function buildSpecLines(inp, frame, curtain, drive, cat, bySku) {
     add('guides', 'guide.footBracket', p.footBracket, 2, '1 на стойку');
     add('guides', 'guide.pad', 'LF-R011', 4, '2 на стойку');
   }
-  add('guides', 'photocell.support', acc.photocell.support, acc.photocell.pairsStandard * acc.photocell.supportsPerPair, '2 на пару фотоэлементов');
+  add('guides', 'photocell.support', acc.photocell.support, inp.photocells.pairs * acc.photocell.supportsPerPair, `2 на пару фотоэлементов; уровень ${inp.photocells.levels.join(' / ')} мм`);
 
   // ── Привод ────────────────────────────────────────────────
   const d = drive;
   add('drive', 'motor', d.motorSku, 1, `${d.powerKw} кВт, ${d.gearbox} ${d.ratio}`);
   add('drive', 'controlUnit', d.controlUnitSku, 1, '');
-  add('drive', 'motor.plate', d.plateSku, 1, d.gearbox);
+  add('drive', 'motor.plate', d.plateSku, 1, `кронштейн привода по редуктору ${d.gearbox}`);
   add('drive', 'motor.bumper', 'LF-R012', d.bumpers, '1 при RV50, 2 при RV63');
   add('drive', 'motor.cover', d.motorCoverSku, 1, `боковина ${f.sidePlate}, сторона ${d.driveSide}`);
   for (const k of acc.standardKit) add('drive', `std.${k.sku}`, k.sku, k.qty, k.note);
