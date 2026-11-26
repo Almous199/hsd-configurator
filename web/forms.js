@@ -1,6 +1,6 @@
 // Справочник форм заказа (экран менеджера). Схема Alex 25.11.2026:
 //  · один справочник для всех изделий (SDA, SDA-DS, ISD01, RSD02, список расширяется);
-//  · Create new → диалог выбора изделия → форма этого изделия (пока есть только форма SDA / SDA-DS);
+//  · Create new → диалог выбора изделия → форма этого изделия (пока только SDA; SDA-DS — галочка Own production в форме);
 //  · номер формы = DSO из Zoho (+ номер изделия, если в заказе разные изделия);
 //  · форма заморожена, пока есть спецификация с тем же номером (calcs/index.json); разморозить = удалить спецификацию в specs.html.
 // Хранение — общая рабочая папка Door calculation tool (web/storage.js): forms/index.json + forms/<id>.json.
@@ -12,12 +12,10 @@ const FORM_URL = 'sda-order-form.html';
 const CALC_URL = 'sda-calculator.html';
 
 // Изделия диалога Create new. form — страница формы заказа; null — формы пока нет (Alex 25.11: ISD01/RSD02 позже).
-// SDA и SDA-DS — одна форма, различается исполнение (своё производство / заказ на стороне), его можно переключить в форме.
+// В диалоге только SDA (Alex 26.11): SDA-DS получается галочкой Own production в самой форме.
 export const PRODUCTS = [
-  { code: 'SDA-DS', category: 'highspeed', form: FORM_URL,
-    en: 'High speed roll-up door · own production (complete kit)', th: 'ประตูม้วนความเร็วสูง · ผลิตเอง (ชุดประตูครบ)' },
   { code: 'SDA', category: 'highspeed', form: FORM_URL,
-    en: 'High speed roll-up door · ordered outside, no assembly', th: 'ประตูม้วนความเร็วสูง · สั่งจากภายนอก ไม่มีการประกอบ' },
+    en: 'High speed roll-up door · tick «Own production» in the form for SDA-DS', th: 'ประตูม้วนความเร็วสูง · ติ๊ก «ผลิตเอง» ในฟอร์มสำหรับ SDA-DS' },
   { code: 'ISD01', category: 'sectional', form: null, en: 'Industrial sectional door', th: 'ประตูเซกชันอุตสาหกรรม' },
   { code: 'RSD02', category: 'sectional', form: null, en: 'Sectional door, finger-safe panels', th: 'ประตูเซกชัน แผงกันหนีบนิ้ว' },
 ];
@@ -32,7 +30,8 @@ const TH = {
 const TXT = {
   en: {
     search: 'Search order / customer', draft: 'draft', frozen: 'frozen', later: 'form later', none: 'No saved order forms',
-    noMatch: 'Nothing found', of: 'of', del: 'Delete draft', delFrozen: 'Frozen: delete the specification first',
+    noMatch: 'Nothing found', of: 'of', del: 'Delete form',
+    confirmDelFrozen: (id) => `Delete order form ${id}? The specification ${id} stays in Specifications. This cannot be undone.`,
     confirmDel: (id) => `Delete order form ${id}? This cannot be undone.`,
     frozenTip: 'Frozen: the specification with this number exists. Delete it in Specifications to unfreeze.',
     folderNone: 'Working folder is not selected — forms are kept in this browser only and are not visible in Specifications. Click «Choose working folder» and pick «Door calculation tool» (Web constructor → Door calculation tool).',
@@ -43,7 +42,8 @@ const TXT = {
   },
   th: {
     search: 'ค้นหาคำสั่งซื้อ / ลูกค้า', draft: 'ฉบับร่าง', frozen: 'ล็อกแล้ว', later: 'ฟอร์มภายหลัง', none: 'ยังไม่มีฟอร์มคำสั่งซื้อ',
-    noMatch: 'ไม่พบข้อมูล', of: 'จาก', del: 'ลบฉบับร่าง', delFrozen: 'ล็อกแล้ว: ต้องลบสเปคก่อน',
+    noMatch: 'ไม่พบข้อมูล', of: 'จาก', del: 'ลบฟอร์ม',
+    confirmDelFrozen: (id) => `ลบฟอร์มคำสั่งซื้อ ${id}? สเปค ${id} ยังคงอยู่ในรายการสเปค ไม่สามารถย้อนกลับได้`,
     confirmDel: (id) => `ลบฟอร์มคำสั่งซื้อ ${id}? ไม่สามารถย้อนกลับได้`,
     frozenTip: 'ล็อกแล้ว: มีสเปคเลขนี้อยู่ ลบสเปคในรายการสเปคเพื่อปลดล็อก',
     folderNone: 'ยังไม่ได้เลือกโฟลเดอร์ทำงาน — ฟอร์มจะถูกเก็บในเบราว์เซอร์นี้เท่านั้น และไม่แสดงในรายการสเปค คลิก «Choose working folder» แล้วเลือก «Door calculation tool»',
@@ -141,7 +141,7 @@ function render() {
       <td><span class="st ${fr ? 'frozen' : 'draft'}" ${fr ? `title="${esc(t('frozenTip'))}"` : ''}>${fr ? '🔒 ' : ''}${esc(t(fr ? 'frozen' : 'draft'))}</span></td>
       <td>${fr ? `<a class="spec" href="${esc(linkLang(`${CALC_URL}?calc=${encodeURIComponent(r.id)}`))}">${esc(r.id)} →</a>` : ''}</td>
       <td class="dt">${esc(r.edited || '')}</td>
-      <td>${fr ? `<button class="rm" disabled title="${esc(t('delFrozen'))}" style="opacity:.3">×</button>` : `<button class="rm" data-del="${esc(r.id)}" title="${esc(t('del'))}">×</button>`}</td>
+      <td><button class="rm" data-del="${esc(r.id)}" title="${esc(t('del'))}">×</button></td>
     </tr>`;
   }).join('');
 }
@@ -153,8 +153,8 @@ $('rows').onclick = async (e) => {
     e.stopPropagation();
     const id = del.dataset.del;
     try {
-      if ((await specIds()).has(id)) { alert(t('delFrozen')); await load(); return; } // спецификацию могли создать, пока справочник открыт
-      if (!confirm(t('confirmDel')(id))) return;
+      // Удалять можно и замороженную форму (Alex 26.11; позже ограничим правами менеджеров). Спецификация остаётся.
+      if (!confirm(ST.specs.has(id) ? t('confirmDelFrozen')(id) : t('confirmDel')(id))) return;
       await deleteForm(id);
     } catch (err) { alert(err.message); }
     await load();

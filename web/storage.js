@@ -149,7 +149,7 @@ export async function saveForm(rec, row) {
   await stPut('forms/index.json', { ...ix.head, kind: 'forms-index', updated: nowStr(), forms: rows });
 }
 
-/** Удалить форму (только черновик — проверяет вызывающий код). */
+/** Удалить форму (любую, в т.ч. замороженную — Alex 26.11; спецификация не трогается). */
 export async function deleteForm(id) {
   await stDel(`forms/${id}.json`);
   const ix = await readForms();

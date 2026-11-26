@@ -123,7 +123,7 @@
         <label class="f"><span data-i="H">Opening height H, mm</span><input id="H" type="number" value="2600" min="1000" max="6000" step="10"></label>
         <label class="f"><span data-i="qty">Quantity</span><input id="qty" type="number" value="1" min="1"></label>
         <label class="f"><span data-i="frame">Frame material</span><select id="guide"><option value="alu" selected data-i="frameAlu">Aluminium guide rails + Galvanised top cover</option><option value="ss" data-i="frameSS">SS304 guide rails + SS304 top cover</option></select></label>
-        <label class="f"><span data-i="supply">Supply</span><select id="supply"><option value="own" selected data-i="own">Own production · SDA-DS</option><option value="out" data-i="out">Ordered outside · SDA</option></select></label>
+        <label class="f"><span data-i="supply">Supply</span><span style="display:flex;align-items:center;gap:8px;min-height:34px;color:var(--ink);font-size:14px"><input type="checkbox" id="supply" style="width:18px;height:18px;margin:0"><span data-i="own">Own production · SDA-DS</span></span><span class="hint" data-i="ownHint">Unticked: SDA ordered outside</span></label>
         <label class="f"><span data-i="sections">Sections</span>
           <div class="sec"><button class="btn s" id="sm">−</button><b id="sn">5</b><button class="btn s" id="sp">+</button>
           <button class="btn s" id="sa" title="Reset to the standard layout" data-i="auto">auto</button></div>

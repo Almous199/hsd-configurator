@@ -50,7 +50,7 @@ const S = {
   id: '', revision: 1, W: 2000, H: 2600, qty: 1, color: 0, fabric: 'pvc', extra: 0, layout: null,
   visionAuto: true, vision: new Set([2]), motor: 'L', ctrl: 'L', ctrlH: 1200,
   acc: [],
-  guide: 'alu', supply: 'own',
+  guide: 'alu', supply: 'outsourced',
   boxH: 270, boxD: 235, coverH: 370, guideW: 130, guideD: 90, sideMotor: 350, sideFree: 180,
   overrides: [], loadedOrder: null,
   formId: null, created: null, frozen: false, dirty: false,
@@ -100,7 +100,7 @@ Object.assign(I18N.th, {
 });
 // Справочник форм и сохранение (тред «Сделать справочник форм заказа», 26.11)
 Object.assign(I18N.en, {
-  forms: '← Order forms', newOrder: 'new order', open: 'Open order JSON…', dl: 'Download JSON', save: 'Save',
+  ownHint: 'Unticked: SDA ordered outside', forms: '← Order forms', newOrder: 'new order', open: 'Open order JSON…', dl: 'Download JSON', save: 'Save',
   saveHint: '“Save” keeps the form in Order forms as a draft; you can change and save it again until the engineer creates the specification with this number. Below is the approval sheet that the customer signs (always EN + TH).',
   whyFrozen: 'frozen: the specification exists', whyBlocked: 'fix the size to save', whyNoId: 'enter the sales order number (DSO-…) to save',
   frozen: (id, href) => `🔒 Frozen: the specification <a href="${href}">${id}</a> has been created from this form, so the form is read-only. To change the order, the engineer deletes the specification in Specifications; then the form becomes a draft again.`,
@@ -115,7 +115,7 @@ Object.assign(I18N.en, {
   fsOk: (n) => `Folder: ${n} ✓`, fsRe: (n) => `Reconnect folder (${n})`, fsNo: 'Choose working folder', fsUns: 'Browser: no folder access',
 });
 Object.assign(I18N.th, {
-  forms: '← ฟอร์มคำสั่งซื้อ', newOrder: 'คำสั่งซื้อใหม่', open: 'เปิด JSON คำสั่งซื้อ…', dl: 'ดาวน์โหลด JSON', save: 'บันทึก',
+  ownHint: 'ไม่ติ๊ก: SDA สั่งจากภายนอก', forms: '← ฟอร์มคำสั่งซื้อ', newOrder: 'คำสั่งซื้อใหม่', open: 'เปิด JSON คำสั่งซื้อ…', dl: 'ดาวน์โหลด JSON', save: 'บันทึก',
   saveHint: '“บันทึก” จะเก็บฟอร์มเป็นฉบับร่างในรายการฟอร์มคำสั่งซื้อ แก้ไขและบันทึกซ้ำได้จนกว่าวิศวกรจะสร้างสเปคเลขเดียวกัน ด้านล่างคือแบบอนุมัติที่ลูกค้าลงนาม (สองภาษาเสมอ)',
   whyFrozen: 'ล็อกแล้ว: มีสเปคแล้ว', whyBlocked: 'แก้ขนาดก่อนบันทึก', whyNoId: 'ใส่เลขที่ใบสั่งขาย (DSO-…) เพื่อบันทึก',
   frozen: (id, href) => `🔒 ล็อกแล้ว: สร้างสเปค <a href="${href}">${id}</a> จากฟอร์มนี้แล้ว ฟอร์มจึงดูได้อย่างเดียว หากต้องการแก้คำสั่งซื้อ วิศวกรต้องลบสเปคในรายการสเปค แล้วฟอร์มจะกลับเป็นฉบับร่าง`,
@@ -405,7 +405,7 @@ function update() {
   S.H = Math.round(+$('H').value || 0);
   S.qty = Math.max(1, parseInt($('qty').value, 10) || 1);
   S.guide = $('guide').value;
-  S.supply = $('supply').value === 'out' ? 'outsourced' : 'own';
+  S.supply = $('supply').checked ? 'own' : 'outsourced'; // галочка Own production: SDA → SDA-DS (Alex 26.11)
   S.fabric = $('fabric').value;
   if (S.color >= pal().length) S.color = 0;
   S.ctrlH = Math.round(+$('ctrlH').value || 1000);
@@ -477,7 +477,7 @@ function loadOrder(doc) {
   $('ref').value = ord.reference || '';
   $('W').value = doc.opening.width; $('H').value = doc.opening.height; $('qty').value = doc.opening.quantity || 1;
   $('guide').value = o.frameMaterial === 'ss304' ? 'ss' : 'alu';
-  $('supply').value = o.supply === 'outsourced' ? 'out' : 'own';
+  $('supply').checked = o.supply !== 'outsourced';
   const pvc = o.pvc || 'blue';
   $('fabric').value = pvc.startsWith('mesh-') ? 'mesh' : 'pvc';
   S.fabric = $('fabric').value;
@@ -595,7 +595,6 @@ async function openForm(id) {
   }
   loadOrder(rec.doc || rec);
   S.formId = id; S.created = rec.created || null;
-  if (rec.product === 'SDA') $('supply').value = 'out';
   const sp = await specIds().catch(() => new Set());
   if (sp.has(id)) setFrozen(true); else banner(null);
   update(); S.dirty = false;
@@ -613,7 +612,7 @@ async function start() {
     await openForm(formId);
   } else {
     const p = q.get('product');
-    if (p === 'SDA') $('supply').value = 'out'; else if (p === 'SDA-DS') $('supply').value = 'own';
+    if (p === 'SDA-DS') $('supply').checked = true;
     if (FS.state === 'none') banner('warn', esc(T('folderNone')));
   }
   update();
