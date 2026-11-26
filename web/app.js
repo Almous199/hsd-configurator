@@ -1,7 +1,12 @@
 // Форма заказа SDA на ядре расчёта (products/hsr). Макет: 05-order-form/order-form-mockup.html (тред 05).
 // Расчёт, раскладка, рама, привод и спецификация — только из ядра; форма их не дублирует.
 // В сборке dist/ каталоги встроены в window.__CATALOGS__, в разработке читаются из ../catalogs/hsr.
-import { calculateHsr, exportAssemblyCsv, ENGINE } from '../products/hsr/index.js';
+// Сохранение — в справочник форм заказа (forms.html): общая папка Door calculation tool, forms/<id>.json + forms/index.json.
+// Адреса: ?form=<id> открыть сохранённую · ?new=1&product=SDA|SDA-DS новая · lang=en|th.
+// Форма заморожена (только просмотр), если есть спецификация с тем же номером (calcs/index.json); разморозить = удалить спецификацию.
+// Себестоимости и состава (спецификации, CSV Zoho) здесь нет: это экран менеджера, спецификация — в калькуляторе SDA.
+import { calculateHsr, ENGINE } from '../products/hsr/index.js';
+import { FS, fsInit, fsPick, fsReconnect, stGet, readForms, specIds, saveForm, deleteForm, nowStr } from './storage.js';
 
 const CATALOG_FILES = ['items', 'guides', 'profiles', 'header', 'drives', 'space', 'frame-materials',
   'layouts', 'curtain', 'assemblies', 'accessories'];
@@ -42,14 +47,15 @@ for (const t of CAT.accessories.types) {
 ACC_MODELS.other = [{ sku: null, available: true, label: '', short: '' }];
 
 const S = {
-  id: 'DSO-26659-2', revision: 1, W: 2000, H: 2600, qty: 5, color: 0, fabric: 'pvc', extra: 0, layout: null,
+  id: '', revision: 1, W: 2000, H: 2600, qty: 1, color: 0, fabric: 'pvc', extra: 0, layout: null,
   visionAuto: true, vision: new Set([2]), motor: 'L', ctrl: 'L', ctrlH: 1200,
-  acc: [{ t: 'radar', sku: 'Orca', q: 1 }],
+  acc: [],
   guide: 'alu', supply: 'own',
   boxH: 270, boxD: 235, coverH: 370, guideW: 130, guideD: 90, sideMotor: 350, sideFree: 180,
   overrides: [], loadedOrder: null,
+  formId: null, created: null, frozen: false, dirty: false,
 };
-let RESULT = null; let DOC = null;
+let RESULT = null; let DOC = null; let LOADING = true;
 const I18N = {
  en:{ title:'SDA · new order', sub:'Mockup of the manager form. Customer data is filled automatically on the real server.', order:'Order', so:'Sales order number', load:'Load from Zoho',
   soHint:'Customer and addresses are pulled from the SO', cust:'Customer', addr:'Delivery address', addrHint:'If the SO has no shipping address, the billing address is used',
@@ -92,15 +98,49 @@ Object.assign(I18N.th, {
   perDoor: 'ต่อประตู', unitH: 'หน่วย', total: 'รวม', ruleH: 'กฎ', outsourced: 'สั่งจากภายนอก (SDA): ไม่มีการประกอบใน Zoho',
   notes: 'หมายเหตุจากการคำนวณ', sec: { curtain: 'ม่าน', header: 'กล่องและเพลา', guides: 'ราง', drive: 'มอเตอร์' },
 });
+// Справочник форм и сохранение (тред «Сделать справочник форм заказа», 26.11)
+Object.assign(I18N.en, {
+  forms: '← Order forms', newOrder: 'new order', open: 'Open order JSON…', dl: 'Download JSON', save: 'Save',
+  saveHint: '“Save” keeps the form in Order forms as a draft; you can change and save it again until the engineer creates the specification with this number. Below is the approval sheet that the customer signs (always EN + TH).',
+  whyFrozen: 'frozen: the specification exists', whyBlocked: 'fix the size to save', whyNoId: 'enter the sales order number (DSO-…) to save',
+  frozen: (id, href) => `🔒 Frozen: the specification <a href="${href}">${id}</a> has been created from this form, so the form is read-only. To change the order, the engineer deletes the specification in Specifications; then the form becomes a draft again.`,
+  saved: (id, where) => `Saved ${id} to Order forms${where}.`, inFolder: (n) => ` (folder ${n})`,
+  noFolder: ' — this browser only: choose the working folder so that the engineer sees the form',
+  folderNone: 'Working folder is not selected: the form is saved in this browser only. Choose «Door calculation tool» so that the engineer sees it in Specifications.',
+  folderRe: (n) => `The browser needs permission for the working folder «${n}».`, allow: 'Allow',
+  notFound: (id) => `Order form ${id} not found in the working folder.`,
+  takenSpec: (id) => `Specification ${id} already exists, so this number is taken. Check the order number.`,
+  takenForm: (id) => `Order form ${id} already exists. Open it from Order forms or change the number.`,
+  renamed: (a, b) => `The number changed from ${a} to ${b}. Save the form as ${b} and remove ${a}?`,
+  fsOk: (n) => `Folder: ${n} ✓`, fsRe: (n) => `Reconnect folder (${n})`, fsNo: 'Choose working folder', fsUns: 'Browser: no folder access',
+});
+Object.assign(I18N.th, {
+  forms: '← ฟอร์มคำสั่งซื้อ', newOrder: 'คำสั่งซื้อใหม่', open: 'เปิด JSON คำสั่งซื้อ…', dl: 'ดาวน์โหลด JSON', save: 'บันทึก',
+  saveHint: '“บันทึก” จะเก็บฟอร์มเป็นฉบับร่างในรายการฟอร์มคำสั่งซื้อ แก้ไขและบันทึกซ้ำได้จนกว่าวิศวกรจะสร้างสเปคเลขเดียวกัน ด้านล่างคือแบบอนุมัติที่ลูกค้าลงนาม (สองภาษาเสมอ)',
+  whyFrozen: 'ล็อกแล้ว: มีสเปคแล้ว', whyBlocked: 'แก้ขนาดก่อนบันทึก', whyNoId: 'ใส่เลขที่ใบสั่งขาย (DSO-…) เพื่อบันทึก',
+  frozen: (id, href) => `🔒 ล็อกแล้ว: สร้างสเปค <a href="${href}">${id}</a> จากฟอร์มนี้แล้ว ฟอร์มจึงดูได้อย่างเดียว หากต้องการแก้คำสั่งซื้อ วิศวกรต้องลบสเปคในรายการสเปค แล้วฟอร์มจะกลับเป็นฉบับร่าง`,
+  saved: (id, where) => `บันทึก ${id} ในรายการฟอร์มคำสั่งซื้อแล้ว${where}`, inFolder: (n) => ` (โฟลเดอร์ ${n})`,
+  noFolder: ' — เฉพาะเบราว์เซอร์นี้: เลือกโฟลเดอร์ทำงานเพื่อให้วิศวกรเห็นฟอร์ม',
+  folderNone: 'ยังไม่ได้เลือกโฟลเดอร์ทำงาน: ฟอร์มจะถูกบันทึกในเบราว์เซอร์นี้เท่านั้น เลือก «Door calculation tool» เพื่อให้วิศวกรเห็นในรายการสเปค',
+  folderRe: (n) => `เบราว์เซอร์ต้องการสิทธิ์เข้าถึงโฟลเดอร์ «${n}»`, allow: 'อนุญาต',
+  notFound: (id) => `ไม่พบฟอร์มคำสั่งซื้อ ${id} ในโฟลเดอร์ทำงาน`,
+  takenSpec: (id) => `มีสเปค ${id} แล้ว เลขนี้ถูกใช้แล้ว กรุณาตรวจสอบเลขที่คำสั่งซื้อ`,
+  takenForm: (id) => `มีฟอร์มคำสั่งซื้อ ${id} แล้ว เปิดจากรายการฟอร์ม หรือเปลี่ยนเลข`,
+  renamed: (a, b) => `เลขเปลี่ยนจาก ${a} เป็น ${b} บันทึกฟอร์มเป็น ${b} และลบ ${a}?`,
+  fsOk: (n) => `โฟลเดอร์: ${n} ✓`, fsRe: (n) => `เชื่อมต่อโฟลเดอร์ใหม่ (${n})`, fsNo: 'เลือกโฟลเดอร์ทำงาน', fsUns: 'เบราว์เซอร์: ไม่รองรับโฟลเดอร์',
+});
 let LANG = 'en';
-try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('sdaLang') || 'en'; } catch (e) { /* без хранилища */ }
+try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('dh.lang') || 'en'; } catch (e) { /* без хранилища */ }
+if (!I18N[LANG]) LANG = 'en';
 const T = (k) => (I18N[LANG] || I18N.en)[k];
 function applyLang() {
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i]').forEach((e) => { const v = T(e.dataset.i); if (typeof v === 'string') e.textContent = v; });
   document.querySelectorAll('.langsw button').forEach((b) => b.classList.toggle('on', b.dataset.lang === LANG));
 }
-document.querySelectorAll('.langsw button').forEach((b) => b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem('sdaLang', LANG); } catch (e) { /* */ } applyLang(); update(); });
+document.querySelectorAll('.langsw button').forEach((b) => b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem('dh.lang', LANG); } catch (e) { /* */ }
+  const u = new URL(location.href); u.searchParams.set('lang', LANG); history.replaceState(null, '', u);
+  applyLang(); fsUi(); update(); if (S.frozen) setFrozen(true); });
 
 const NS='http://www.w3.org/2000/svg';
 function el(tag,a,p){ const e=document.createElementNS(NS,tag); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e; }
@@ -276,7 +316,7 @@ function buildDoc() {
   return {
     ...base,
     schemaVersion: '1.0', productType: 'hsr', id: S.id, revision: S.revision,
-    order: { ...(base.order || {}), salesorderNumber: $('so').value.trim(), customer: { ...((base.order || {}).customer || {}), name: $('cust').value },
+    order: { ...(base.order || {}), salesorderNumber: (parseSo($('so').value) || {}).so || $('so').value.trim(), salesorderItem: (parseSo($('so').value) || {}).item ?? null, customer: { ...((base.order || {}).customer || {}), name: $('cust').value },
       deliveryAddress: $('addr').value, reference: $('ref').value,
       notes: S.acc.filter((r) => r.t === 'other' && r.text).map((r) => `${r.text} × ${r.q}`).join('; ') || (base.order || {}).notes || '' },
     opening: { ...(base.opening || {}), width: S.W, height: S.H, quantity: S.qty },
@@ -284,13 +324,14 @@ function buildDoc() {
   };
 }
 
-function idFromSo() {
-  const so = $('so').value.trim().toUpperCase();
-  const m = /^(DSO-\d+)(?:-(\d+))?/.exec(so);
-  if (!m) return S.id;
-  const item = (S.loadedOrder && S.loadedOrder.order && S.loadedOrder.order.salesorderItem) || 1;
-  return `${m[1]}-${m[2] || item}`;
+/** Номер формы = DSO из Zoho; номер изделия добавляется, только если в заказе разные изделия (Alex 25.11): DSO-26659 / DSO-26659-2. */
+function parseSo(v) {
+  const m = /^\s*(?:DSO-?)?\s*(\d+)(?:\s*[-/]\s*(\d+))?\s*$/i.exec(v || '');
+  if (!m) return null;
+  const item = m[2] ? +m[2] : null;
+  return { so: `DSO-${m[1]}`, item, id: `DSO-${m[1]}${item ? '-' + item : ''}` };
 }
+function idFromSo() { const p = parseSo($('so').value); return p ? p.id : ''; }
 
 // ── Отрисовка ────────────────────────────────────────────────
 function renderAcc() {
@@ -356,30 +397,6 @@ function renderMessages(calc) {
   notes.innerHTML = `<b>${T('notes')}</b><ul>${calc.warnings.map((m) => `<li>${esc(m.text)}</li>`).join('')}</ul>`;
 }
 
-function renderSpec() {
-  const card = $('specCard');
-  const spec = RESULT.spec;
-  $('csv').disabled = !spec;
-  if (!spec) {
-    $('specBody').innerHTML = `<tr><td colspan="7" class="hint">${S.supply === 'outsourced' ? T('outsourced') : '—'}</td></tr>`;
-    $('bun').value = '';
-    return;
-  }
-  const asmSel = $('asm');
-  if (!asmSel.options.length) {
-    for (const a of CAT.assemblies.assemblies) asmSel.add(new Option(`${a.sku} · ${a.name}`, a.sku));
-  }
-  const asm = CAT.assemblies.assemblies.find((a) => a.sku === asmSel.value) || CAT.assemblies.assemblies[0];
-  $('bun').value = spec.bundleNumber || '';
-  const secName = T('sec');
-  $('specBody').innerHTML = spec.lines.filter((l) => asm.sections.includes(l.section)).map((l) => {
-    const cls = l.missingSku ? 'miss' : (l.pendingImport || l.provisional ? 'pend' : '');
-    const total = +(l.qty * S.qty).toFixed(4);
-    return `<tr class="${cls}"><td>${secName[l.section] || l.section}</td><td>${esc(l.sku || '— no SKU —')}</td><td>${esc(l.name || l.partId)}</td>
-      <td class="n">${l.qty}</td><td>${l.unit || ''}</td><td class="n">${total}</td><td class="hint">${esc(l.rule || '')}${l.pendingImport ? ' · not in Zoho yet' : ''}${l.provisional ? ' · not confirmed' : ''}</td></tr>`;
-  }).join('');
-  card.style.opacity = 1;
-}
 
 function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
@@ -399,7 +416,7 @@ function update() {
   const calc = RESULT.calc;
   renderMessages(calc);
   const blocked = calc.status !== 'ok';
-  $('save').disabled = blocked;
+  saveState(blocked);
   document.querySelector('.sheet').style.opacity = blocked ? 0.35 : 1;
 
   if (calc.frame && calc.curtain) {
@@ -421,13 +438,14 @@ function update() {
     renderColors(); renderAcc();
   }
   renderSheetText(calc);
-  renderSpec();
+  if (S.frozen) lockInputs();
+  if (!LOADING) S.dirty = true;
   $('engineTag').textContent = `${calc.engine} · catalogs ${calc.catalogs || '?'}`;
 }
 
 // Ручные «прозрачная секция» из чертежа: draw() меняет S.vision и ставит visionAuto=false
 ['W', 'H', 'qty', 'cust', 'addr', 'so', 'ref', 'ctrlH'].forEach((id) => $(id).addEventListener('input', update));
-['guide', 'supply', 'fabric', 'asm'].forEach((id) => $(id).addEventListener('change', update));
+['guide', 'supply', 'fabric'].forEach((id) => $(id).addEventListener('change', update));
 $('sm').onclick = () => { S.extra = Math.max(0, S.extra - 1); S.visionAuto = true; update(); };
 $('sp').onclick = () => { S.extra = Math.min(2, S.extra + 1); S.visionAuto = true; update(); };
 $('sa').onclick = () => { S.extra = 0; S.visionAuto = true; update(); };
@@ -441,25 +459,6 @@ function download(name, text, type) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-$('save').onclick = () => {
-  const doc = { ...DOC, calc: RESULT.calc, spec: RESULT.spec };
-  download(`${S.id}.json`, JSON.stringify(doc, null, 2), 'application/json');
-};
-
-$('csv').onclick = () => {
-  const date = $('asmDate').value;
-  const out = exportAssemblyCsv(DOC, RESULT, CAT, { assemblySku: $('asm').value, date });
-  const msg = $('csvMsg');
-  const blocking = out.problems.filter((p) => !/ещё не заведён/.test(p));
-  if (!out.csv || blocking.length) {
-    msg.style.color = '#b71c1c';
-    msg.textContent = 'Export blocked: ' + out.problems.join('; ');
-    return;
-  }
-  download(out.fileName, out.csv, 'text/csv;charset=utf-8');
-  msg.style.color = out.problems.length ? '#8a6d00' : '#2e7d32';
-  msg.textContent = `${out.fileName} · ${out.problems.length ? 'check before import: ' + out.problems.join('; ') : 'ready for Zoho: Assemblies → ⋮ → Import Assemblies'}`;
-};
 
 $('openFile').onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return;
@@ -471,8 +470,8 @@ $('openFile').onchange = async (e) => {
 function loadOrder(doc) {
   S.loadedOrder = doc;
   const o = doc.options || {}; const ord = doc.order || {};
-  S.id = doc.id || S.id; S.revision = doc.revision || 1;
-  $('so').value = doc.id || ord.salesorderNumber || '';
+  S.revision = doc.revision || 1;
+  $('so').value = ord.salesorderNumber ? `${ord.salesorderNumber}${ord.salesorderItem ? '-' + ord.salesorderItem : ''}` : (doc.id || '');
   $('cust').value = (ord.customer && ord.customer.name) || '';
   $('addr').value = ord.deliveryAddress || '';
   $('ref').value = ord.reference || '';
@@ -493,17 +492,136 @@ function loadOrder(doc) {
   update();
 }
 
-$('asmDate').value = new Date().toISOString().slice(0, 10);
-$('so').value = 'DSO-26659-2';
-$('ref').value = 'Type 2 · 5 doors';
-$('fabric').value = 'pvc';
-$('ctrlH').value = 1200;
-const q = new URLSearchParams(location.search);
-if (q.get('motor')) S.motor = q.get('motor'); if (q.get('ctrl')) S.ctrl = q.get('ctrl');
-if (q.get('W')) $('W').value = q.get('W'); if (q.get('H')) $('H').value = q.get('H');
-if (q.get('extra')) S.extra = +q.get('extra');
-if (q.get('color')) S.color = +q.get('color');
-if (q.get('guide')) $('guide').value = q.get('guide');
+// ── Справочник форм: сохранение, открытие, заморозка ─────────
+const VERSION = '1.0';
+const FORMS_URL = 'forms.html';
+const CALC_URL = 'sda-calculator.html';
+const productOf = () => (S.supply === 'outsourced' ? 'SDA' : 'SDA-DS');
+const withLang = (url) => `${url}${url.includes('?') ? '&' : '?'}lang=${LANG}`;
+
+function banner(kind, html, btn) {
+  const b = $('banner');
+  if (!kind) { b.hidden = true; return; }
+  b.hidden = false; b.className = `banner ${kind}`;
+  b.innerHTML = html + (btn ? ` <button class="btn s" id="bannerBtn">${esc(btn.text)}</button>` : '');
+  if (btn) $('bannerBtn').onclick = btn.onclick;
+}
+function fsUi() {
+  const b = $('fsBtn'); const s = FS.state;
+  b.textContent = s === 'ok' ? T('fsOk')(FS.name) : s === 'reconnect' ? T('fsRe')(FS.name) : s === 'unsupported' ? T('fsUns') : T('fsNo');
+  b.className = 'btn s' + (s === 'ok' ? ' btn-ok' : '');
+}
+$('fsBtn').onclick = async () => {
+  try {
+    if (FS.state === 'reconnect') await fsReconnect(); else if (FS.state !== 'unsupported') await fsPick();
+    fsUi();
+    if (PENDING) { const p = PENDING; PENDING = null; await p(); } else if (FS.state === 'ok' && !S.frozen) banner(null);
+  } catch (e) { if (e && e.name !== 'AbortError') alert(e.message); }
+};
+
+/** Кнопка Save и заголовок: почему сохранить нельзя — подсказкой рядом. */
+function saveState(blocked) {
+  const why = S.frozen ? T('whyFrozen') : blocked ? T('whyBlocked') : !S.id ? T('whyNoId') : '';
+  $('save').disabled = !!why;
+  $('saveWhy').textContent = why;
+  $('formTag').textContent = productOf();
+  $('title').textContent = `${productOf()} · ${S.formId || S.id || T('newOrder')}`;
+  document.title = `${S.formId || T('newOrder')} · ${productOf()}`;
+  $('lnkForms').href = withLang(FORMS_URL);
+}
+
+function lockInputs() {
+  document.querySelectorAll('.app input, .app select, .app textarea, .app button').forEach((e) => {
+    if (e.id !== 'print' && e.id !== 'dl') e.disabled = true;
+  });
+}
+function setFrozen(on) {
+  S.frozen = on;
+  document.body.classList.toggle('frozen', on);
+  $('openLbl').style.display = on ? 'none' : '';
+  if (on) {
+    lockInputs();
+    banner('info', T('frozen')(esc(S.formId), withLang(`${CALC_URL}?calc=${encodeURIComponent(S.formId)}`)));
+  }
+}
+
+async function save() {
+  update();
+  const id = S.id;
+  if (!id || S.frozen) return;
+  if (FS.state === 'reconnect') {
+    PENDING = save;
+    banner('warn', esc(T('folderRe')(FS.name)), { text: T('allow'), onclick: () => $('fsBtn').click() });
+    return;
+  }
+  try {
+    const [fx, sp] = await Promise.all([readForms(), specIds()]);
+    if (sp.has(id)) {
+      if (id === S.formId) { setFrozen(true); update(); return; } // спецификацию создали, пока форма была открыта
+      banner('err', esc(T('takenSpec')(id))); return;
+    }
+    if (fx.rows.some((r) => r.id === id) && id !== S.formId) { banner('err', esc(T('takenForm')(id))); return; }
+    const old = S.formId && S.formId !== id ? S.formId : null;
+    if (old && (sp.has(old) || !confirm(T('renamed')(old, id)))) return;
+    const now = nowStr();
+    const created = (S.formId && S.created) || now;
+    const doc = structuredClone(DOC);
+    delete doc.calc; delete doc.spec; // в форме только заказ: расчёт и состав делает калькулятор
+    doc.id = id;
+    const rec = { app: 'hsd-configurator', kind: 'form', version: VERSION, engine: ENGINE, id, category: 'highspeed',
+      product: productOf(), status: 'draft', created, edited: now, doc };
+    const row = { id, order: doc.order.salesorderNumber, pos: doc.order.salesorderItem || '', customer: (doc.order.customer || {}).name || '',
+      category: 'highspeed', product: rec.product, W: S.W, H: S.H, qty: S.qty, created, edited: now, status: 'draft' };
+    await saveForm(rec, row);
+    if (old) await deleteForm(old);
+    S.formId = id; S.created = created; S.loadedOrder = doc; S.dirty = false;
+    history.replaceState(null, '', `?form=${encodeURIComponent(id)}&lang=${LANG}`);
+    banner('ok', esc(T('saved')(id, FS.state === 'ok' ? T('inFolder')(FS.name) : T('noFolder'))));
+    update(); S.dirty = false;
+  } catch (e) { banner('err', esc(e.message || String(e))); }
+}
+$('save').onclick = save;
+$('dl').onclick = () => {
+  const doc = structuredClone(DOC); delete doc.calc; delete doc.spec;
+  download(`${S.id || 'order'}.json`, JSON.stringify(doc, null, 2), 'application/json');
+};
+
+async function openForm(id) {
+  let rec = null;
+  try { rec = await stGet(`forms/${id}.json`); } catch (e) { banner('err', esc(e.message)); }
+  if (!rec) {
+    banner('err', esc(T('notFound')(id)), { text: T('forms'), onclick: () => { location.href = withLang(FORMS_URL); } });
+    update(); return;
+  }
+  loadOrder(rec.doc || rec);
+  S.formId = id; S.created = rec.created || null;
+  if (rec.product === 'SDA') $('supply').value = 'out';
+  const sp = await specIds().catch(() => new Set());
+  if (sp.has(id)) setFrozen(true); else banner(null);
+  update(); S.dirty = false;
+}
+
+let PENDING = null;
+async function start() {
+  const q = new URLSearchParams(location.search);
+  await fsInit(); fsUi();
+  const formId = q.get('form');
+  if (formId && FS.state === 'reconnect') {
+    PENDING = () => openForm(formId);
+    banner('warn', esc(T('folderRe')(FS.name)), { text: T('allow'), onclick: () => $('fsBtn').click() });
+  } else if (formId) {
+    await openForm(formId);
+  } else {
+    const p = q.get('product');
+    if (p === 'SDA') $('supply').value = 'out'; else if (p === 'SDA-DS') $('supply').value = 'own';
+    if (FS.state === 'none') banner('warn', esc(T('folderNone')));
+  }
+  update();
+  LOADING = false; S.dirty = false;
+}
+window.addEventListener('beforeunload', (e) => { if (S.dirty && !S.frozen) { e.preventDefault(); e.returnValue = ''; } });
+
 applyLang();
 update();
+await start();
 window.SDA = { get result() { return RESULT; }, get doc() { return DOC; }, loadOrder };

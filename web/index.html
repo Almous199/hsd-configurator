@@ -65,32 +65,53 @@
   .sig { margin-top:5mm; border-top:0.2mm solid var(--ink); padding-top:0.6mm; color:var(--muted); font-size:2.2mm; }
   table.spec td { font-size:12px; } table.spec td.n { text-align:right; font-variant-numeric:tabular-nums; } table.spec tr.miss td { color:#b71c1c; } table.spec tr.pend td { color:#8a6d00; }
   #notes ul { margin:4px 0 0 18px; padding:0; }
-  .langsw { position:fixed; top:12px; right:16px; display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; z-index:10; }
+  .appbar { display:flex; align-items:center; gap:14px; background:#fff; border-bottom:.5px solid rgba(0,0,0,.1); padding:10px 20px; position:sticky; top:0; z-index:20; flex-wrap:wrap; font-family:"Segoe UI","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif; }
+  .appbar .brand { font-weight:600; font-size:15px; }
+  .appbar .nav-tab { border:0; background:none; padding:6px 14px; border-radius:8px; color:#6b6b67; text-decoration:none; font-size:14px; }
+  .appbar .nav-tab.on { background:#e6f0fa; color:#185FA5; }
+  .appbar .sp { flex:1; }
+  .appbar .btn-ok { background:#e8f3e8; color:#2e7d32; border-color:#b7d8b8; }
+  .banner { padding:8px 20px; font-size:13px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .banner[hidden] { display:none; }
+  .banner.info { background:#e6f0fa; color:#174a7c; } .banner.warn { background:#fff4dc; color:#8a5a00; }
+  .banner.err { background:#fdecea; color:#b3261e; } .banner.ok { background:#e8f3e8; color:#2e7d32; }
+  .banner a { color:inherit; font-weight:600; }
+  body.frozen #form-svg { pointer-events:none; }
+  body.frozen .app input:disabled, body.frozen .app select:disabled, body.frozen .app textarea:disabled { background:#f6f6f3; color:#333; }
+  .langsw { display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; }
   .langsw button { font:inherit; border:0; background:#fff; padding:6px 12px; cursor:pointer; color:var(--muted); }
   .langsw button.on { background:var(--accent); color:#fff; }
   @media print {
-    body { background:#fff; } .app > *:not(.sheetwrap), .langsw { display:none !important; }
+    body { background:#fff; } .app > *:not(.sheetwrap), .appbar, .banner { display:none !important; }
     .app { padding:0; max-width:none; } .sheet { box-shadow:none; margin:0; }
   }
 </style>
 </head>
 <body>
-<div class="app">
+<div class="appbar">
+  <span class="brand">DOORHAN SIAM</span>
+  <a class="nav-tab" id="lnkForms" href="forms.html" data-i="forms">← Order forms</a>
+  <span class="nav-tab on" id="formTag">SDA</span>
+  <span class="sp"></span>
+  <button class="btn s" id="fsBtn"></button>
   <div class="langsw"><button data-lang="en">EN</button><button data-lang="th">ไทย</button></div>
-  <h1 data-i="title">SDA · new order</h1>
+</div>
+<div id="banner" class="banner" hidden></div>
+<div class="app">
+  <h1 id="title">SDA · new order</h1>
   <div class="sub"><span data-i="sub">Order form on the calculation core. Customer data will be pulled from Zoho on the server.</span> <span class="tag" id="engineTag"></span></div>
 
   <div class="card">
     <h2 data-i="order">Order</h2>
     <div class="grid">
       <label class="f"><span data-i="so">Sales order number</span>
-        <div style="display:flex;gap:6px"><input id="so" value="DSO-26659" style="flex:1"><button class="btn s" id="load" data-i="load" disabled title="Available on the server">Load from Zoho</button></div>
-        <span class="hint" data-i="soHint">Customer and addresses are pulled from the SO</span></label>
-      <label class="f"><span data-i="cust">Customer</span><input id="cust" value="JSCG"></label>
+        <div style="display:flex;gap:6px"><input id="so" placeholder="DSO-26659" style="flex:1" autocomplete="off"><button class="btn s" id="load" data-i="load" disabled title="Available on the server">Load from Zoho</button></div>
+        <span class="hint" data-i="soHint">Customer and addresses are pulled from the SO. If the order has different products, add the item number: DSO-26659-2</span></label>
+      <label class="f"><span data-i="cust">Customer</span><input id="cust"></label>
       <label class="f"><span data-i="addr">Delivery address</span>
-        <textarea id="addr" rows="2">259/319 Sukhumvit 71 Road, Prakanongnua, Wattana, Bangkok 10110</textarea>
+        <textarea id="addr" rows="2"></textarea>
         <span class="hint" data-i="addrHint">If the SO has no shipping address, the billing address is used</span></label>
-      <label class="f"><span data-i="ref">Reference / door location</span><input id="ref" value="Type 2 · 5 doors"></label>
+      <label class="f"><span data-i="ref">Reference / door location</span><input id="ref"></label>
     </div>
   </div>
 
@@ -100,7 +121,7 @@
       <div class="grid" style="grid-template-columns:1fr 1fr">
         <label class="f"><span data-i="W">Opening width W, mm</span><input id="W" type="number" value="2000" min="800" max="6000" step="10"></label>
         <label class="f"><span data-i="H">Opening height H, mm</span><input id="H" type="number" value="2600" min="1000" max="6000" step="10"></label>
-        <label class="f"><span data-i="qty">Quantity</span><input id="qty" type="number" value="5" min="1"></label>
+        <label class="f"><span data-i="qty">Quantity</span><input id="qty" type="number" value="1" min="1"></label>
         <label class="f"><span data-i="frame">Frame material</span><select id="guide"><option value="alu" selected data-i="frameAlu">Aluminium guide rails + Galvanised top cover</option><option value="ss" data-i="frameSS">SS304 guide rails + SS304 top cover</option></select></label>
         <label class="f"><span data-i="supply">Supply</span><select id="supply"><option value="own" selected data-i="own">Own production · SDA-DS</option><option value="out" data-i="out">Ordered outside · SDA</option></select></label>
         <label class="f"><span data-i="sections">Sections</span>
@@ -142,24 +163,10 @@
   </div>
 
   <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-    <div class="hint" data-i="saveHint">“Save calculation” freezes this block for the manager. Below is the approval sheet that the customer signs (always EN + TH).</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><label class="btn" style="margin:0"><span data-i="open">Open order…</span><input type="file" id="openFile" accept=".json,application/json" hidden></label><button class="btn" id="save" data-i="save">Save calculation</button><button class="btn p" id="print" data-i="print">Print / PDF</button></div>
+    <div class="hint" data-i="saveHint">“Save” keeps the form in Order forms as a draft; you can change and save it again until the engineer creates the specification with this number. Below is the approval sheet that the customer signs (always EN + TH).</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="hint" id="saveWhy" style="color:#b3261e"></span><label class="btn" style="margin:0" id="openLbl"><span data-i="open">Open order JSON…</span><input type="file" id="openFile" accept=".json,application/json" hidden></label><button class="btn" id="dl" data-i="dl">Download JSON</button><button class="btn" id="print" data-i="print">Print / PDF</button><button class="btn p" id="save" data-i="save">Save</button></div>
   </div>
 
-  <div class="card" id="specCard">
-    <h2 data-i="spec">Specification and Zoho assembly · engineer</h2>
-    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:10px">
-      <label class="f"><span data-i="asm">Composite item</span><select id="asm"></select></label>
-      <label class="f"><span data-i="bun">Assembly number</span><input id="bun" readonly></label>
-      <label class="f"><span data-i="asmDate">Assembly date</span><input id="asmDate" type="date"></label>
-      <label class="f"><span>&nbsp;</span><button class="btn p" id="csv" data-i="csv">Export CSV for Zoho</button></label>
-    </div>
-    <div id="csvMsg" class="hint" style="margin-bottom:8px"></div>
-    <div style="overflow:auto"><table class="acc spec">
-      <thead><tr><th data-i="secH">Section</th><th>SKU</th><th data-i="nameH">Zoho name</th><th style="text-align:right" data-i="perDoor">Per door</th><th data-i="unitH">Unit</th><th style="text-align:right" data-i="total">Total</th><th data-i="ruleH">Rule</th></tr></thead>
-      <tbody id="specBody"></tbody>
-    </table></div>
-  </div>
 
   <div class="sheetwrap">
     <div class="sheet">

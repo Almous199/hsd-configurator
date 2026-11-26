@@ -12,7 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 test('dist/ собран из текущего кода и каталогов', () => {
   const out = mkdtempSync(join(tmpdir(), 'sda-'));
   execFileSync(process.execPath, [join(root, 'scripts/build-standalone.js'), out]);
-  for (const [file, mod] of [['sda-order-form.html', 'products/hsr/index.js'], ['sda-calculator.html', 'products/hsr/winding.js']]) {
+  for (const [file, mod] of [['sda-order-form.html', 'products/hsr/index.js'], ['sda-calculator.html', 'products/hsr/winding.js'], ['forms.html', 'web/storage.js']]) {
     const fresh = readFileSync(join(out, file), 'utf8');
     assert.ok(fresh.includes('window.__CATALOGS__'));
     assert.ok(fresh.includes(mod), `${file}: нет модуля ${mod}`);
