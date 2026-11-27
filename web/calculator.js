@@ -682,17 +682,44 @@ $('asmDate').onchange = (e) => { ST.asmDate = e.target.value; };
 document.querySelectorAll('.prn').forEach((e) => e.onchange = () => renderSpec());
 $('btnPrint').onclick = () => window.print();
 
+/** Всплывающее сообщение внизу экрана — видно при любой прокрутке (Alex 27.11: нет видимого эффекта сохранения). */
+function toast(kind, html, ms = 4000) {
+  let t = $('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.className = `toast ${kind} on`; t.innerHTML = html;
+  clearTimeout(toast.tm); toast.tm = setTimeout(() => t.classList.remove('on'), ms);
+}
+const SAVE_BTNS = ['btnSave', 'btnSave2'];
+function saveBusy(on) {
+  SAVE_BTNS.forEach((b) => {
+    const el = $(b);
+    if (on) { el.dataset.txt = el.textContent; el.textContent = LANG === 'th' ? 'กำลังบันทึก…' : 'Saving…'; el.disabled = true; }
+    else { if (el.dataset.txt) el.textContent = el.dataset.txt; el.disabled = false; }
+  });
+}
+function saveFail(text) {
+  saveBusy(false); updateSave();
+  toast('err', `✕ ${esc(text)}`, 7000);
+}
+function savedChip() {
+  const c = $('savedChip');
+  c.textContent = LANG === 'th' ? 'บันทึกแล้ว ✓' : 'Saved ✓';
+  c.classList.add('on'); clearTimeout(savedChip.tm);
+  savedChip.tm = setTimeout(() => c.classList.remove('on'), 3000);
+}
+
 async function save() {
   const d = ST.doc;
   const id = idOf(d);
-  if (!id) { alert('Order number is required'); return; }
+  if (!id) { saveFail('Order number is required'); return; }
   if (FS.state !== 'ok' && FS.state !== 'unsupported' && FS.state !== 'none') {
-    alert('Working folder: click «Reconnect» in the top bar first'); return;
+    saveFail('Working folder: click «Reconnect» in the top bar first'); return;
   }
+  saveBusy(true);
   try {
     const ix = await readIndex();
     const clash = ix.rows.find((r) => r.id === id);
-    if (clash && id !== ST.calcId) { alert(`Specification ${id} already exists in the registry. Open it there or change the number.`); return; }
+    if (clash && id !== ST.calcId) { saveFail(`Specification ${id} already exists in the registry. Open it there or change the number.`); return; }
     d.options.supply = 'own'; // SDA → SDA-DS при сохранении (Alex 26.11)
     recalc();
     const now = nowStr();
@@ -711,10 +738,14 @@ async function save() {
     const frozen = await freezeForm(id);
     ST.calcId = id; ST.dirty = false;
     history.replaceState(null, '', `?calc=${encodeURIComponent(id)}&lang=${LANG}`);
+    saveBusy(false);
     setView(true);
-    banner('ok', `Saved ${id} to the registry${FS.state === 'ok' ? ` (folder ${esc(FS.name)})` : ' (this browser only — no working folder)'}${frozen ? ' · order form frozen' : ''}.`);
-    render(); tab('spec');
-  } catch (e) { alert('Save failed: ' + e.message); }
+    const where = FS.state === 'ok' ? ` (folder ${esc(FS.name)})` : ' (this browser only — no working folder)';
+    banner('ok', `Saved ${esc(id)} to the registry${where}${frozen ? ' · order form frozen' : ''}.`);
+    render(); tab('spec'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    savedChip();
+    toast(FS.state === 'ok' ? 'ok' : 'warn', `✓ ${LANG === 'th' ? 'บันทึกแล้ว' : 'Saved'} <b>${esc(id)}</b>${where}${frozen ? ' · order form frozen' : ''} <span class="tm">${now.slice(11)}</span>`, FS.state === 'ok' ? 4000 : 7000);
+  } catch (e) { saveFail('Not saved: ' + e.message); }
 }
 $('btnSave').onclick = save; $('btnSave2').onclick = save;
 document.querySelectorAll('.exit').forEach((b) => b.onclick = () => {
