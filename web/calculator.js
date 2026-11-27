@@ -319,6 +319,24 @@ function renderBlock3() {
   $('pv3').innerHTML = topView(); $('pv3b').innerHTML = boxSection();
 }
 
+// Что за позиция, если артикула в Zoho нет (Alex 27.11: «в спецификации нет артикулов»)
+const PART_LABEL = {
+  pvc: ['PVC fabric 1100 g/m² — colour', 'ผ้า PVC 1100 g/m² — สี'], 'pvc.clear': ['PVC fabric transparent', 'ผ้า PVC ใส'],
+  windbar: ['Wind bar', 'โปรไฟล์กันลม'], 'windbar.plug': ['Wind bar plug', 'จุกปิดโปรไฟล์กันลม'],
+  bottom: ['Bottom profile', 'โปรไฟล์ล่าง'], 'bottom.plug': ['Bottom profile plug', 'จุกปิดโปรไฟล์ล่าง'], 'bottom.seal': ['Bottom sealing rubber', 'ยางล่าง'],
+  'header.cover': ['Header cover', 'ฝาครอบกล่อง'], 'header.endPlates': ['Header end plates', 'แผ่นปิดข้างกล่อง'], shaft: ['Shaft', 'เพลา'], 'shaft.flange': ['Shaft flange', 'หน้าแปลนเพลา'],
+  'motor.cover': ['Motor cover', 'ฝาครอบมอเตอร์'], 'motor.plate': ['Drive bracket', 'แผ่นยึดมอเตอร์'],
+};
+function missingLabel(l) {
+  const lb = PART_LABEL[l.partId] || PART_LABEL[l.partId.split('.')[0]];
+  const name = lb ? lb[LANG === 'th' ? 1 : 0] : l.partId;
+  const why = l.partId === 'pvc' ? ` ${ST.doc.options.pvc}` : '';
+  const curW = R.calc.curtain?.width;
+  const reinf = ['windbar', 'windbar.plug', 'bottom', 'bottom.plug', 'bottom.seal'].includes(l.partId) && curW > 5000
+    ? (LANG === 'th' ? ` แบบเสริม (ม่านกว้าง ${curW} > 5000)` : ` reinforced (curtain ${curW} > 5000)`) : '';
+  return `${name}${why}${reinf} · <b>${LANG === 'th' ? 'ไม่มี SKU ใน Zoho' : 'no SKU in Zoho'}</b>`;
+}
+
 function updateSave() {
   const blocked = R.calc.status !== 'ok'; const noId = !idOf(ST.doc);
   ['btnSave', 'btnSave2'].forEach((b) => { $(b).disabled = blocked || noId; });
@@ -594,7 +612,7 @@ function renderSpec() {
   c.errors.forEach((m) => warn.push('✕ ' + msgText(m, LANG)));
   c.warnings.filter((m) => m.code !== 'CONTROL_SIDE_DEFAULT').forEach((m) => warn.push('⚠ ' + msgText(m, LANG)));
   const lines = editedLines();
-  lines.filter((l) => l.missingSku).forEach((l) => warn.push(`⚠ ${l.partId}: no SKU in Zoho`));
+  { const miss = lines.filter((l) => l.missingSku && !l.sku); if (miss.length) warn.push(`⚠ ${LANG === 'th' ? 'ไม่มี SKU ใน Zoho' : 'No SKU in Zoho'}: ${miss.map((l) => l.partId).join(', ')} — ${LANG === 'th' ? 'ใส่ SKU ด้วยมือหรือเพิ่มสินค้าใน Zoho' : 'enter the SKU by hand or add the item to Zoho'}`); }
   $('specWarn').innerHTML = warn.length ? `<div class="wrbox" style="margin:0 0 4px">${warn.map(esc).join('<br>')}</div>` : '';
   const matLabel = CAT.frameMaterials.options.find((m) => m.id === d.options.frameMaterial)?.label?.en || '';
   const head = `${esc(d.id || '—')} · ${esc(d.order.customer?.name || '')} · SDA-DS · ${c.opening.width} × ${c.opening.height} · ${esc(matLabel)} · ${esc(d.options.pvc)} · ×${c.opening.quantity}`;
@@ -615,7 +633,7 @@ function renderSpec() {
       const gr = groupOf(l);
       if (gr !== g) { g = gr; t += `<tr class="grp"><td colspan="8">${esc(gr)}</td></tr>`; }
       const len = lengthOf(l);
-      t += `<tr class="${l.edited ? 'ov' : ''}"><td><input class="sku" list="skuList" data-sku="${esc(l.partId)}" value="${esc(l.sku || '')}"></td><td>${esc(l.name || '—')}</td><td class="n">${len ?? '—'}</td>
+      t += `<tr class="${l.edited ? 'ov' : ''}${l.missingSku ? ' miss' : ''}"><td><input class="sku" list="skuList" data-sku="${esc(l.partId)}" value="${esc(l.sku || '')}" placeholder="${LANG === 'th' ? 'ใส่ SKU' : 'enter SKU'}"></td><td>${l.missingSku && !l.sku ? missingLabel(l) : esc(l.name || '—')}</td><td class="n">${len ?? '—'}</td>
         <td class="n"><input class="num" data-qty="${esc(l.partId)}" value="${l.qty}"></td><td class="n">${round3(l.qty * qtyTotal)}</td><td>${esc(l.unit || '')}</td><td>${esc(ruleText(l, LANG) || '')}</td>
         <td class="noprint"><button class="btn btn-sm rm" data-del="${esc(l.partId)}">×</button></td></tr>`;
     }
