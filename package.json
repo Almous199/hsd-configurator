@@ -10,6 +10,8 @@
     "check:catalogs": "node scripts/check-catalogs.js",
     "calc": "node scripts/calc-order.js",
     "build": "node scripts/build-standalone.js",
+    "build:catalyst": "node scripts/build-catalyst.js",
+    "serve:catalyst": "node scripts/build-catalyst.js && node scripts/serve-catalyst.js",
     "serve": "node scripts/serve.js",
     "sync:zoho": "node scripts/sync-zoho-names.js"
   }

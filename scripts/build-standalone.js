@@ -16,13 +16,13 @@ const catalogs = loadCatalogs().hsr;
 const json = (v) => JSON.stringify(v).replaceAll('</', '<\\/');
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
-const PAGES = [
+export const PAGES = [
   { html: 'web/index.html', entry: 'web/app.js', out: 'sda-order-form.html' },
   { html: 'web/calculator.html', entry: 'web/calculator.js', out: 'sda-calculator.html' },
   { html: 'web/forms.html', entry: 'web/forms.js', out: 'forms.html' },
 ];
 
-function build(page, outDir) {
+export function build(page, outDir, { before = '' } = {}) {
   // Обход графа модулей: post-order, чтобы зависимости шли раньше.
   const order = [];
   const sources = new Map();
@@ -58,7 +58,7 @@ window.__CATALOGS__ = ${json(catalogs)};
   let html = readFileSync(join(root, page.html), 'utf8');
   const tag = `<script type="module" src="./${page.entry.split('/').pop()}"></script>`;
   if (!html.includes(tag)) throw new Error(`В ${page.html} нет строки ${tag}`);
-  html = html.replace(tag, () => `<!-- собрано scripts/build-standalone.js, ${pkg.name} ${pkg.version} -->\n<script>${loader}\n</script>`);
+  html = html.replace(tag, () => `<!-- собрано scripts/build-standalone.js, ${pkg.name} ${pkg.version} -->\n${before}<script>${loader}\n</script>`);
 
   const out = join(outDir, page.out);
   mkdirSync(outDir, { recursive: true });
@@ -66,5 +66,7 @@ window.__CATALOGS__ = ${json(catalogs)};
   console.log(`${relative(root, out)}: ${modules.length} модулей, ${(html.length / 1024).toFixed(0)} КБ`);
 }
 
-const outDir = resolve(process.argv[2] || join(root, 'dist'));
-for (const page of PAGES) build(page, outDir);
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const outDir = resolve(process.argv[2] || join(root, 'dist'));
+  for (const page of PAGES) build(page, outDir);
+}

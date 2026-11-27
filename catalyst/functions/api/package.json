@@ -1,0 +1,10 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "description": "hsd-configurator: виртуальная рабочая папка (forms/, calcs/, catalog.json, orders.json) в Stratus с проверкой входа и роли",
+  "dependencies": {
+    "zcatalyst-sdk-node": "3.4.0"
+  }
+}

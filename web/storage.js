@@ -7,7 +7,11 @@
 // Индекс всегда перечитывается перед записью: меняется только своя строка (договорённость с проектом секционных).
 
 const LS_PREFIX = 'dcfs:';
-export const FS = { dir: null, state: 'init', name: '' };
+export const FS = { dir: null, state: 'init', name: '', server: false, user: null, role: '' };
+
+// Онлайн-режим (Zoho Catalyst): сборка для Catalyst подключает hsd-online.js (window.HSD). Тогда вместо папки
+// те же пути (forms/…, calcs/…) читает и пишет функция api; вход и роли проверяет сервер (catalyst/functions/api).
+const HSD = typeof window !== 'undefined' ? window.HSD : null;
 
 function idbOpen() {
   return new Promise((res, rej) => {
@@ -27,6 +31,7 @@ async function idbSet(k, v) {
 }
 
 export async function fsInit() {
+  if (HSD) { await HSD.init(FS); return FS.state; }
   if (!window.showDirectoryPicker) { FS.state = 'unsupported'; return FS.state; }
   try {
     const h = await idbGet('dir');
@@ -38,12 +43,14 @@ export async function fsInit() {
   return FS.state;
 }
 export async function fsPick() {
+  if (HSD) { HSD.signOut(); return FS.state; }
   const h = await window.showDirectoryPicker({ id: 'doorcalc', mode: 'readwrite' });
   FS.dir = h; FS.name = h.name; FS.state = 'ok';
   try { await idbSet('dir', h); } catch (e) { /* без IndexedDB — только на эту сессию */ }
   return FS.state;
 }
 export async function fsReconnect() {
+  if (HSD) return FS.state;
   if (!FS.dir) return fsPick();
   if ((await FS.dir.requestPermission({ mode: 'readwrite' })) === 'granted') FS.state = 'ok';
   return FS.state;
@@ -56,6 +63,7 @@ async function dirOf(path, create) {
   return { d, name: parts[parts.length - 1] };
 }
 export async function stGet(path) {
+  if (HSD) return HSD.get(path);
   if (FS.state === 'ok') {
     try {
       const { d, name } = await dirOf(path, false);
@@ -69,6 +77,7 @@ export async function stGet(path) {
   try { const s = localStorage.getItem(LS_PREFIX + path); return s ? JSON.parse(s) : null; } catch (e) { return null; }
 }
 export async function stPut(path, obj) {
+  if (HSD) return HSD.put(path, obj);
   const txt = JSON.stringify(obj, null, 1);
   if (FS.state === 'ok') {
     const { d, name } = await dirOf(path, true);
@@ -120,6 +129,7 @@ export async function freezeForm(id) {
 // разморозить = удалить спецификацию); поле status в файле — только подсказка для других программ.
 
 export async function stDel(path) {
+  if (HSD) return HSD.del(path);
   if (FS.state === 'ok') {
     try { const { d, name } = await dirOf(path, false); await d.removeEntry(name); } catch (e) {
       if (!(e && e.name === 'NotFoundError')) throw e;

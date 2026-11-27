@@ -530,7 +530,7 @@ function banner(kind, html, btn) {
 }
 function fsUi() {
   const b = $('fsBtn'); const s = FS.state;
-  b.textContent = s === 'ok' ? T('fsOk')(FS.name) : s === 'reconnect' ? T('fsRe')(FS.name) : s === 'unsupported' ? T('fsUns') : T('fsNo');
+  b.textContent = s === 'ok' ? (FS.server ? FS.name : T('fsOk')(FS.name)) : s === 'reconnect' ? T('fsRe')(FS.name) : s === 'unsupported' ? T('fsUns') : T('fsNo');
   b.className = 'btn s' + (s === 'ok' ? ' btn-ok' : '');
 }
 $('fsBtn').onclick = async () => {
@@ -598,7 +598,7 @@ async function save() {
     if (old) await deleteForm(old);
     S.formId = id; S.created = created; S.loadedOrder = doc; S.dirty = false;
     history.replaceState(null, '', `?form=${encodeURIComponent(id)}&lang=${LANG}`);
-    const msg = esc(T('saved')(id, FS.state === 'ok' ? T('inFolder')(FS.name) : T('noFolder')));
+    const msg = esc(T('saved')(id, FS.server ? '' : FS.state === 'ok' ? T('inFolder')(FS.name) : T('noFolder')));
     banner(FS.state === 'ok' ? 'ok' : 'warn', msg);
     toast(FS.state === 'ok' ? 'ok' : 'warn', `✓ ${msg} <span class="tm">${now.slice(11)}</span>`, FS.state === 'ok' ? 4000 : 7000);
     flashSave(true);

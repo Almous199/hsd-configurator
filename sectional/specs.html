@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Specifications</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --nav-h:48px;
+  --c-bg:#f5f4f0; --c-surf:#ffffff; --c-surf2:#f0efe8;
+  --c-border:rgba(0,0,0,0.1); --c-border2:rgba(0,0,0,0.18);
+  --c-text:#1a1a18; --c-muted:#6b6b67; --c-hint:#9e9e99;
+  --c-accent:#185FA5; --c-accent-bg:#E6F1FB;
+  --c-success-bg:#EAF3DE; --c-success:#27500A;
+  --c-warn-bg:#FAEEDA; --c-warn:#633806;
+  --c-danger-bg:#FCEBEB; --c-danger:#A32D2D;
+  --r:8px; --rl:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;background:var(--c-bg);color:var(--c-text);min-height:100vh;}
+nav{height:var(--nav-h);background:var(--c-surf);border-bottom:.5px solid var(--c-border);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:100;}
+.nav-brand{font-size:14px;font-weight:500;white-space:nowrap;}
+.nav-tag{background:var(--c-accent-bg);color:var(--c-accent);font-weight:600;font-size:11px;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.sp{flex:1;}
+.lang-toggle{display:flex;align-items:center;gap:4px;background:var(--c-surf2);border-radius:99px;padding:3px;border:.5px solid var(--c-border);}
+.lang-btn{padding:3px 10px;font-size:12px;font-weight:500;border:none;cursor:pointer;border-radius:99px;background:none;color:var(--c-muted);}
+.lang-btn.active{background:var(--c-surf);color:var(--c-accent);box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.page{padding:24px 20px;}
+.section-head{margin-bottom:20px;}
+.section-head h1{font-size:18px;font-weight:500;margin-bottom:3px;}
+.section-head p{font-size:13px;color:var(--c-muted);}
+.btn{border:none;border-radius:var(--r);padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
+.btn-primary{background:var(--c-accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-ghost{background:var(--c-surf);color:var(--c-text);border:.5px solid var(--c-border2);}
+.btn-ghost:hover{background:var(--c-surf2);}
+.btn-danger{background:var(--c-danger-bg);color:var(--c-danger);border:.5px solid #F09595;}
+.btn-success{background:var(--c-success-bg);color:var(--c-success);border:.5px solid #C0DD97;}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px;}
+.btn-x{background:none;border:none;color:var(--c-hint);cursor:pointer;font-size:15px;padding:0 6px;line-height:1;}
+.btn-x:hover{color:var(--c-danger);}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.toolbar input,.toolbar select{background:var(--c-surf);border:.5px solid var(--c-border2);border-radius:var(--r);padding:6px 10px;font-size:13px;color:var(--c-text);}
+.count{font-size:13px;color:var(--c-muted);}
+.count b{color:var(--c-text);}
+.infobox{font-size:12px;color:var(--c-muted);background:var(--c-surf2);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;line-height:1.7;}
+.infobox b{color:var(--c-text);}
+.tw{overflow-x:auto;border-radius:var(--rl);border:.5px solid var(--c-border);}
+table{width:100%;border-collapse:collapse;background:var(--c-surf);}
+thead{background:var(--c-surf2);}
+th{padding:8px 12px;font-size:11px;font-weight:500;color:var(--c-muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:.5px solid var(--c-border2);white-space:nowrap;text-align:left;}
+th.r,td.r{text-align:right;}
+td{padding:8px 12px;font-size:13px;border-bottom:.5px solid var(--c-border);white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tbody tr.row{cursor:pointer;}
+tbody tr.row:hover td{background:var(--c-accent-bg);}
+.fw{font-weight:600;}
+.mut{color:var(--c-muted);}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:20px;}
+.chip.sect{background:var(--c-accent-bg);color:var(--c-accent);}
+.chip.hs{background:var(--c-warn-bg);color:var(--c-warn);}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-start;justify-content:center;padding-top:10vh;z-index:200;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--c-surf);border-radius:var(--rl);border:.5px solid var(--c-border2);box-shadow:0 8px 30px rgba(0,0,0,.18);padding:20px;width:min(760px,calc(100vw - 32px));max-height:80vh;overflow:auto;}
+.modal h2{font-size:16px;font-weight:500;margin-bottom:14px;}
+.cat-btns{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cat-btn{border:.5px solid var(--c-border2);border-radius:var(--rl);background:var(--c-surf);padding:24px 16px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;}
+.cat-btn:hover{background:var(--c-accent-bg);color:var(--c-accent);border-color:var(--c-accent);}
+.cat-btn small{display:block;font-size:12px;font-weight:400;color:var(--c-muted);margin-top:4px;}
+.modal-foot{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:14px;}
+.warn{color:var(--c-danger);}
+</style>
+</head>
+<body>
+<nav>
+  <span class="nav-brand" data-t="brand">DOORHAN SIAM — Specifications</span>
+  <span class="nav-tag" id="ver-tag"></span>
+  <span class="sp"></span>
+  <a class="btn btn-ghost btn-sm" id="lnk-ref" href="#" data-t="refs">Catalog &amp; references</a>
+  <div class="lang-toggle"><button class="lang-btn" onclick="setLang('en')">EN</button><button class="lang-btn" onclick="setLang('th')">TH</button></div>
+</nav>
+
+<div class="page">
+  <div class="section-head"><h1 data-t="title">Specifications</h1><p data-t="sub">Registry of specifications · sectional and high speed doors · click a row to open the specification</p></div>
+  <div class="infobox" id="fs-info"></div>
+  <div class="toolbar">
+    <input id="q" type="search" data-tp="search" placeholder="Search order / customer" oninput="render()" style="min-width:240px;">
+    <select id="fcat" onchange="render()">
+      <option value="" data-t="cat-all">All</option>
+      <option value="sectional" data-t="cat-sectional">Sectional</option>
+      <option value="highspeed" data-t="cat-highspeed">High speed</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="newOpen()"><span data-t="new">New calculation</span></button>
+    <button class="btn btn-ghost btn-sm" id="fs-btn" onclick="fsChipClick()"></button>
+    <button class="btn btn-ghost btn-sm" onclick="load()" title="Reload">⟳</button>
+    <button class="btn btn-ghost btn-sm" onclick="rebuildIndex()" data-t="rebuild" title="Rebuild calcs/index.json from calcs/*.json">Rebuild index</button>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="tw"><table>
+    <thead><tr>
+      <th data-t="c-created">Created</th><th data-t="c-order">Order / pos.</th><th data-t="c-cat">Category</th><th data-t="c-prod">Product</th>
+      <th data-t="c-cust">Customer</th><th data-t="c-dt">Door type</th><th class="r" data-t="c-qty">Qty</th><th data-t="c-edited">Last edit</th><th></th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table></div>
+</div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this) newClose()">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════════
+// specs.html — общий справочник спецификаций DOORHAN SIAM (секционные + скоростные).
+// Журнал проекта секционных: записи № 95–97. Рабочая папка — та же «Door calculation tool»:
+//   calcs/index.json + calcs/<id>.json (пишут оба калькулятора), forms/index.json (пишет калькулятор скоростных).
+// Индекс пишется только с перечитыванием: меняется / удаляется одна строка по id.
+// ════════════════════════════════════════════════════════════════════════════════
+const SPECS_VERSION = '1.0';
+// Путь к текущей версии калькулятора секционных — ОБНОВЛЯТЬ ПРИ КАЖДОМ ВЫПУСКЕ калькулятора.
+const SECT_URL = 'door_calculator%20v3.53.html';
+// Калькулятор скоростных (SDA, SDA-DS) — относительно папки Door calculation tool; на Catalyst станет '/sda/calc'.
+const HSR_URL  = '../../HSD%20constructor/app/sda-calculator.html';
+const LS_LANG = 'doorCalcLang', LS_FS_PREFIX = 'dcfs:';
+
+const LANGS = {
+  en: { brand:'DOORHAN SIAM — Specifications', title:'Specifications', sub:'Registry of specifications · sectional and high speed doors · click a row to open the specification',
+    search:'Search order / customer', 'cat-all':'All categories', 'cat-sectional':'Sectional', 'cat-highspeed':'High speed', new:'New calculation', rebuild:'Rebuild index', refs:'Catalog & references',
+    'c-created':'Created','c-order':'Order / pos.','c-cat':'Category','c-prod':'Product','c-cust':'Customer','c-dt':'Door type','c-qty':'Qty','c-edited':'Last edit',
+    empty:'No saved specifications', del:'Delete specification', delQ:'Delete specification {0}?\n\nThe file calcs/{1}.json and its registry row will be removed. This cannot be undone.', deleted:'Deleted: {0}',
+    fsChoose:'Choose working folder', fsReconnect:'Reconnect folder', fsBrowser:'Browser storage', fsFolder:'Folder',
+    fsOk:'Folder <b>{0}</b> · calcs/index.json: {1} rows · forms/index.json: {2}', fsNone:'Working folder is not selected — specifications are kept in the browser. Click «Choose working folder» and select the «Door calculation tool» folder.',
+    fsRe:'Folder <b>{0}</b> is not connected — click «Reconnect folder» (the browser will ask for permission).', fsUns:'This browser cannot open a local folder (use Chrome or Edge). Data is kept in the browser.',
+    pick:'New calculation — choose the category', sect:'Sectional door', sectSub:'ISD01 · RSD02', hs:'High speed door', hsSub:'SDA · SDA-DS',
+    forms:'Order forms without a specification', createNew:'Create new (no order form)', back:'← Back', cancel:'Cancel', noForms:'No order forms without a specification.',
+    needFolder:'High speed door calculator works only with the working folder — choose the «Door calculation tool» folder first.',
+    'f-order':'DSO / pos.','f-cust':'Customer','f-prod':'Product','f-wh':'W × H','f-qty':'Qty','f-created':'Created',
+    rebuildQ:'Rebuild calcs/index.json from the files calcs/*.json?', rebuilt:'Index rebuilt: {0} rows', notFolder:'Choose the working folder first.' },
+  th: { brand:'DOORHAN SIAM — รายการสเปค', title:'รายการสเปค', sub:'ทะเบียนสเปค · ประตูเซกชันนอลและประตูม้วนเร็ว · คลิกแถวเพื่อเปิดสเปค',
+    search:'ค้นหาเลขที่ / ลูกค้า', 'cat-all':'ทุกประเภท', 'cat-sectional':'เซกชันนอล', 'cat-highspeed':'ประตูม้วนเร็ว', new:'คำนวณใหม่', rebuild:'สร้างดัชนีใหม่', refs:'แคตตาล็อกและข้อมูลอ้างอิง',
+    'c-created':'วันที่สร้าง','c-order':'เลขที่ / ลำดับ','c-cat':'ประเภท','c-prod':'ผลิตภัณฑ์','c-cust':'ลูกค้า','c-dt':'ชนิดประตู','c-qty':'จำนวน','c-edited':'แก้ไขล่าสุด',
+    empty:'ยังไม่มีสเปคที่บันทึกไว้', del:'ลบสเปค', delQ:'ลบสเปค {0}?\n\nไฟล์ calcs/{1}.json และแถวในทะเบียนจะถูกลบ ไม่สามารถกู้คืนได้', deleted:'ลบแล้ว: {0}',
+    fsChoose:'เลือกโฟลเดอร์งาน', fsReconnect:'เชื่อมต่อโฟลเดอร์อีกครั้ง', fsBrowser:'เก็บในเบราว์เซอร์', fsFolder:'โฟลเดอร์',
+    fsOk:'โฟลเดอร์ <b>{0}</b> · calcs/index.json: {1} แถว · forms/index.json: {2}', fsNone:'ยังไม่ได้เลือกโฟลเดอร์งาน — สเปคเก็บในเบราว์เซอร์ กด «เลือกโฟลเดอร์งาน» แล้วเลือกโฟลเดอร์ «Door calculation tool»',
+    fsRe:'โฟลเดอร์ <b>{0}</b> ยังไม่ได้เชื่อมต่อ — กด «เชื่อมต่อโฟลเดอร์อีกครั้ง» (เบราว์เซอร์จะขออนุญาต)', fsUns:'เบราว์เซอร์นี้เปิดโฟลเดอร์ไม่ได้ (ใช้ Chrome หรือ Edge) ข้อมูลเก็บในเบราว์เซอร์',
+    pick:'คำนวณใหม่ — เลือกประเภท', sect:'ประตูเซกชันนอล', sectSub:'ISD01 · RSD02', hs:'ประตูม้วนเร็ว', hsSub:'SDA · SDA-DS',
+    forms:'ใบสั่งซื้อที่ยังไม่มีสเปค', createNew:'สร้างใหม่ (ไม่มีใบสั่งซื้อ)', back:'← กลับ', cancel:'ยกเลิก', noForms:'ไม่มีใบสั่งซื้อที่ยังไม่มีสเปค',
+    needFolder:'โปรแกรมคำนวณประตูม้วนเร็วใช้ได้กับโฟลเดอร์งานเท่านั้น — เลือกโฟลเดอร์ «Door calculation tool» ก่อน',
+    'f-order':'DSO / ลำดับ','f-cust':'ลูกค้า','f-prod':'ผลิตภัณฑ์','f-wh':'กว้าง × สูง','f-qty':'จำนวน','f-created':'วันที่สร้าง',
+    rebuildQ:'สร้าง calcs/index.json ใหม่จากไฟล์ calcs/*.json?', rebuilt:'สร้างดัชนีใหม่แล้ว: {0} แถว', notFolder:'เลือกโฟลเดอร์งานก่อน' }
+};
+let lang = (()=>{ let l=''; try{ l=new URLSearchParams(location.search).get('lang')||''; }catch(e){} if(l!=='en'&&l!=='th'){ try{ l=localStorage.getItem(LS_LANG)||'en'; }catch(e){ l='en'; } } if(l!=='en'&&l!=='th') l='en'; try{ localStorage.setItem(LS_LANG,l); }catch(e){} return l; })();
+function t(k,...a){ let s=(LANGS[lang]&&LANGS[lang][k])||LANGS.en[k]||k; a.forEach((v,i)=>{ s=s.split('{'+i+'}').join(v); }); return s; }
+function escH(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function nowStr(){ const d=new Date(), p=x=>String(x).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+function setLang(l){ lang=l; try{ localStorage.setItem(LS_LANG,l); }catch(e){} applyLang(); render(); }
+function applyLang(){
+  document.querySelectorAll('[data-t]').forEach(e=>{ e.textContent=t(e.dataset.t); });
+  document.querySelectorAll('[data-tp]').forEach(e=>{ e.placeholder=t(e.dataset.tp); });
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.textContent.toLowerCase()===lang));
+  document.getElementById('lnk-ref').href = SECT_URL+'?page=ref-items&lang='+lang;
+  document.documentElement.lang=lang; fsUi();
+}
+
+// ── хранилище: та же рабочая папка, что у калькулятора (дескриптор — IndexedDB doorCalcFS / dir) ──
+const FS={dir:null, state:'init', name:''};
+function idbOpen(){ return new Promise((res,rej)=>{ const r=indexedDB.open('doorCalcFS',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function idbGet(k){ const db=await idbOpen(); return new Promise((res,rej)=>{ const q=db.transaction('kv').objectStore('kv').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+async function idbSet(k,v){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction('kv','readwrite'); tx.objectStore('kv').put(v,k); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
+async function dirOf(path, create){ const parts=path.split('/'); let d=FS.dir; for(let i=0;i<parts.length-1;i++) d=await d.getDirectoryHandle(parts[i],{create:!!create}); return {d, name:parts[parts.length-1]}; }
+function lsGetJ(path){ try{ const s=localStorage.getItem(LS_FS_PREFIX+path); return s?JSON.parse(s):null; }catch(e){ return null; } }
+async function stGet(path){
+  if(FS.state==='ok'){ try{ const {d,name}=await dirOf(path,false); const f=await (await d.getFileHandle(name)).getFile(); return JSON.parse(await f.text()); }
+    catch(e){ if(e&&(e.name==='NotFoundError'||e.name==='TypeMismatchError')) return null; throw e; } }
+  return lsGetJ(path);
+}
+async function stPut(path,obj){
+  const txt=JSON.stringify(obj,null,1);
+  if(FS.state==='ok'){ const {d,name}=await dirOf(path,true); const w=await (await d.getFileHandle(name,{create:true})).createWritable(); await w.write(txt); await w.close(); return; }
+  localStorage.setItem(LS_FS_PREFIX+path, txt);
+}
+async function stDel(path){
+  if(FS.state==='ok'){ try{ const {d,name}=await dirOf(path,false); await d.removeEntry(name); }catch(e){ if(!(e&&e.name==='NotFoundError')) throw e; } return; }
+  try{ localStorage.removeItem(LS_FS_PREFIX+path); }catch(e){}
+}
+async function fsInit(){
+  if(!window.showDirectoryPicker){ FS.state='unsupported'; return; }
+  try{ const h=await idbGet('dir'); if(h){ FS.dir=h; FS.name=h.name; FS.state=(await h.queryPermission({mode:'readwrite'}))==='granted'?'ok':'reconnect'; } else FS.state='none'; }
+  catch(e){ FS.state='none'; }
+}
+async function fsPick(){ try{ const h=await window.showDirectoryPicker({id:'doorcalc', mode:'readwrite'}); FS.dir=h; FS.name=h.name; try{ await idbSet('dir',h); }catch(e){} FS.state='ok'; await load(); }catch(e){ if(e&&e.name!=='AbortError') alert(e.message); } }
+async function fsReconnect(){ if(!FS.dir) return fsPick(); try{ if((await FS.dir.requestPermission({mode:'readwrite'}))==='granted'){ FS.state='ok'; await load(); } }catch(e){ alert(e.message); } }
+function fsChipClick(){ if(FS.state==='reconnect') fsReconnect(); else if(FS.state==='unsupported') alert(t('fsUns')); else fsPick(); }
+function fsUi(){
+  const b=document.getElementById('fs-btn'), i=document.getElementById('fs-info'), st=FS.state;
+  if(b){ b.textContent = st==='ok'?`${t('fsFolder')}: ${FS.name} ✓`:st==='reconnect'?`${t('fsReconnect')} (${FS.name})`:st==='unsupported'?t('fsBrowser'):t('fsChoose');
+    b.className='btn btn-sm '+(st==='ok'?'btn-success':st==='reconnect'?'btn-danger':'btn-ghost'); }
+  if(i) i.innerHTML = st==='ok'?t('fsOk',escH(FS.name),ROWS.length,FORMS?FORMS.length:'—'):st==='reconnect'?t('fsRe',escH(FS.name)):st==='unsupported'?escH(t('fsUns')):escH(t('fsNone'));
+}
+
+// ── данные ──
+let ROWS=[], FORMS=null, MSG='';
+const isHS = r => r && r.app==='hsd-configurator';
+function rowCat(r){ return r.category || (isHS(r)?'highspeed':'sectional'); }
+function productOfDoorType(dt){ return /finger/i.test(String(dt||'')) ? 'RSD02' : 'ISD01'; }   // № 96–97: Therm industrial, Cold plus, Stainless — ISD01; Finger safe — RSD02
+function rowProd(r){ return r.product || (rowCat(r)==='sectional' && r.doorType ? productOfDoorType(r.doorType) : ''); }
+function dispOrder(order,pos){ return (order||'')+((+pos)>0?' / '+pos:''); }
+async function readIndex(){ const ix=await stGet('calcs/index.json'); return {head:ix||{}, rows:(ix&&Array.isArray(ix.calcs))?ix.calcs:[]}; }
+async function load(){
+  MSG='';
+  try{ ROWS=(await readIndex()).rows; }catch(e){ ROWS=[]; MSG='calcs/index.json: '+e.message; }
+  try{ const fx=FS.state==='ok'?await stGet('forms/index.json'):null; FORMS=fx&&Array.isArray(fx.forms)?fx.forms:(FS.state==='ok'?[]:null); }catch(e){ FORMS=[]; }
+  render();
+}
+function rows(){
+  const q=(document.getElementById('q').value||'').toLowerCase(), fc=document.getElementById('fcat').value;
+  return ROWS.filter(r=>(!fc||rowCat(r)===fc) && (!q || `${r.id} ${r.order} ${r.pos} ${r.customer} ${r.doorType} ${rowProd(r)}`.toLowerCase().includes(q)))
+             .sort((a,b)=>String(b.edited||'').localeCompare(String(a.edited||'')));
+}
+function render(){
+  const tb=document.getElementById('tbody'), rs=rows();
+  tb.innerHTML = rs.length ? rs.map(r=>{ const hs=rowCat(r)==='highspeed';
+      return `<tr class="row" onclick="openRow('${escH(r.id)}')"><td>${escH(r.created)}</td><td class="fw">${escH(dispOrder(r.order,r.pos))}</td>`
+        +`<td><span class="chip ${hs?'hs':'sect'}">${escH(t(hs?'cat-highspeed':'cat-sectional'))}</span></td><td>${escH(rowProd(r))}</td>`
+        +`<td style="white-space:normal">${escH(r.customer)}</td><td>${escH(r.doorType)}</td><td class="r">${escH(r.qty)}</td><td>${escH(r.edited)}</td>`
+        +`<td class="r"><button class="btn-x" title="${escH(t('del'))}" onclick="event.stopPropagation();delRow('${escH(r.id)}')">✕</button></td></tr>`; }).join('')
+    : `<tr><td colspan="9" class="mut" style="text-align:center;padding:24px;">${escH(t('empty'))}</td></tr>`;
+  document.getElementById('count').innerHTML=`<b>${rs.length}</b> / ${ROWS.length}`+(MSG?` · <span class="warn">${escH(MSG)}</span>`:'');
+  fsUi();
+}
+
+// ── переход в калькулятор ──
+function calcUrl(r){ return isHS(r) ? (r.url||HSR_URL) : SECT_URL; }
+function openRow(id){
+  const r=ROWS.find(x=>x.id===id); if(!r) return;
+  location.href = calcUrl(r)+'?calc='+encodeURIComponent(id)+'&lang='+lang;      // просмотр спецификации; Edit / Copy — внутри калькулятора
+}
+
+// ── удаление: файл + своя строка индекса (индекс перечитывается) ──
+async function delRow(id){
+  if(!confirm(t('delQ',id,id))) return;
+  try{
+    const ix=await readIndex(), rows=ix.rows.filter(r=>r.id!==id);
+    await stDel('calcs/'+id+'.json');
+    await stPut('calcs/index.json', Object.assign({}, ix.head, {kind:'index', updated:nowStr(), calcs:rows}));
+    await load(); MSG=t('deleted',id); render();
+  }catch(e){ alert(e.message); }
+}
+
+// ── пересборка индекса по файлам calcs/*.json ──
+async function rebuildIndex(){
+  if(FS.state!=='ok'){ alert(t('notFolder')); return; }
+  if(!confirm(t('rebuildQ'))) return;
+  try{
+    const ix=await readIndex(), cd=await FS.dir.getDirectoryHandle('calcs',{create:true}), out=[];
+    for await (const [name,h] of cd.entries()){
+      if(h.kind!=='file' || !/\.json$/i.test(name) || name==='index.json') continue;
+      let rec=null; try{ rec=JSON.parse(await (await h.getFile()).text()); }catch(e){ continue; }
+      if(!rec || !rec.id) continue;
+      const old=ix.rows.find(r=>r.id===rec.id)||{}, hs=rec.app==='hsd-configurator';
+      out.push(Object.assign({}, old, { id:rec.id, order:rec.order||old.order, pos:rec.pos!=null?rec.pos:old.pos, customer:rec.customer!=null?rec.customer:old.customer,
+        doorType:rec.doorType!=null?rec.doorType:old.doorType, qty:rec.qty!=null?rec.qty:old.qty, created:rec.created||old.created, edited:rec.edited||old.edited,
+        app:rec.app||'door_calculator', category:rec.category||(hs?'highspeed':'sectional'), product:rec.product||old.product||(hs?'':productOfDoorType(rec.doorType)) }));
+    }
+    await stPut('calcs/index.json', Object.assign({}, ix.head, {kind:'index', updated:nowStr(), calcs:out}));
+    await load(); MSG=t('rebuilt',out.length); render();
+  }catch(e){ alert(e.message); }
+}
+
+// ── New calculation: категория → формы без спецификации или Create new ──
+let NEWCAT='';
+function newOpen(){ NEWCAT=''; newRender(); document.getElementById('modal').classList.add('open'); }
+function newClose(){ document.getElementById('modal').classList.remove('open'); }
+function newRender(){
+  const m=document.getElementById('modal-body');
+  if(!NEWCAT){
+    m.innerHTML=`<h2>${escH(t('pick'))}</h2><div class="cat-btns">`
+      +`<button class="cat-btn" onclick="newCat('sectional')">${escH(t('sect'))}<small>${escH(t('sectSub'))}</small></button>`
+      +`<button class="cat-btn" onclick="newCat('highspeed')">${escH(t('hs'))}<small>${escH(t('hsSub'))}</small></button></div>`
+      +`<div class="modal-foot"><span></span><button class="btn btn-ghost btn-sm" onclick="newClose()">${escH(t('cancel'))}</button></div>`;
+    return;
+  }
+  if(NEWCAT==='highspeed' && FS.state!=='ok'){
+    m.innerHTML=`<h2>${escH(t('hs'))}</h2><p class="warn" style="font-size:13px;margin-bottom:12px;">${escH(t('needFolder'))}</p>`
+      +`<div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="NEWCAT='';newRender()">${escH(t('back'))}</button><button class="btn btn-primary btn-sm" onclick="newClose();fsChipClick()">${escH(FS.state==='reconnect'?t('fsReconnect'):t('fsChoose'))}</button></div>`;
+    return;
+  }
+  const have=new Set(ROWS.map(r=>r.id));
+  const fl=(FORMS||[]).filter(f=>(f.category||'')===NEWCAT && !have.has(f.id)).sort((a,b)=>String(b.created||'').localeCompare(String(a.created||'')));
+  m.innerHTML=`<h2>${escH(t(NEWCAT==='highspeed'?'hs':'sect'))} — ${escH(t('forms'))}</h2>`
+    +(fl.length?`<div class="tw"><table><thead><tr><th>${escH(t('f-order'))}</th><th>${escH(t('f-cust'))}</th><th>${escH(t('f-prod'))}</th><th>${escH(t('f-wh'))}</th><th class="r">${escH(t('f-qty'))}</th><th>${escH(t('f-created'))}</th></tr></thead><tbody>`
+        +fl.map(f=>`<tr class="row" onclick="newFromForm('${escH(f.id)}')"><td class="fw">${escH(dispOrder(f.order,f.pos))}</td><td style="white-space:normal">${escH(f.customer)}</td><td>${escH(f.product)}</td><td>${escH(f.W)} × ${escH(f.H)}</td><td class="r">${escH(f.qty)}</td><td>${escH(f.created)}</td></tr>`).join('')
+        +`</tbody></table></div>`
+      :`<p class="mut" style="font-size:13px;">${escH(t('noForms'))}</p>`)
+    +`<div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="NEWCAT='';newRender()">${escH(t('back'))}</button>`
+    +`<button class="btn btn-primary btn-sm" onclick="newCreate()">${escH(t('createNew'))}</button></div>`;
+}
+function newCat(c){ NEWCAT=c; newRender(); }
+function newCreate(){ location.href=(NEWCAT==='highspeed'?HSR_URL:SECT_URL)+'?new=1&lang='+lang; }
+function newFromForm(id){ location.href=(NEWCAT==='highspeed'?HSR_URL:SECT_URL)+'?form='+encodeURIComponent(id)+'&lang='+lang; }   // секционные: форм пока нет — калькулятор откроет новый расчёт
+
+document.addEventListener('DOMContentLoaded', async ()=>{
+  document.getElementById('ver-tag').textContent='specs '+SPECS_VERSION;
+  applyLang(); await fsInit(); await load();
+});
+</script>
+</body>
+</html>
