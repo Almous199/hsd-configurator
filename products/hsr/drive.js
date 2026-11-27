@@ -16,24 +16,24 @@ export function calcDrive(inp, frame, cat, messages) {
   const ov = getOverride(inp.options, 'drive.motor', messages);
   if (ov) {
     const m = motors.find((x) => x.id === ov.value);
-    if (!m) messages.push(error('OVERRIDE_MOTOR', `Мотор «${ov.value}» не используется для SDA`));
+    if (!m) messages.push(error('OVERRIDE_MOTOR', { ru: `Мотор «${ov.value}» не используется для SDA`, en: `Motor «${ov.value}» is not used for SDA`, th: `มอเตอร์ «${ov.value}» ไม่ใช้กับ SDA` }));
     else if (m.maxArea[D] == null || inp.areaM2 > m.maxArea[D] + 1e-9) {
-      messages.push(error('OVERRIDE_MOTOR_LIMIT', `Мотор ${m.id} на валу φ${D} тянет до ${m.maxArea[D]} м², проём ${inp.areaM2.toFixed(2)} м²`));
+      messages.push(error('OVERRIDE_MOTOR_LIMIT', { ru: `Мотор ${m.id} на валу φ${D} тянет до ${m.maxArea[D]} м², проём ${inp.areaM2.toFixed(2)} м²`, en: `Motor ${m.id} on shaft φ${D} handles up to ${m.maxArea[D]} m², opening ${inp.areaM2.toFixed(2)} m²`, th: `มอเตอร์ ${m.id} บนเพลา φ${D} รับได้ถึง ${m.maxArea[D]} ตร.ม. ช่องเปิด ${inp.areaM2.toFixed(2)} ตร.ม.` }));
     } else {
       motor = m;
-      messages.push(warning('OVERRIDE_APPLIED', `Мотор заменён вручную на ${m.id}: ${ov.reason}`));
+      messages.push(warning('OVERRIDE_APPLIED', { ru: `Мотор заменён вручную на ${m.id}: ${ov.reason}`, en: `Motor changed manually to ${m.id}: ${ov.reason}`, th: `เปลี่ยนมอเตอร์เป็น ${m.id} ด้วยมือ: ${ov.reason}` }));
     }
   }
   if (!motor) {
     messages.push(error('MOTOR_NOT_AVAILABLE',
-      `Not available: на вал φ${D} нет мотора для ${inp.areaM2.toFixed(2)} м² (каталог Powever)`));
+      { ru: `Not available: на вал φ${D} нет мотора для ${inp.areaM2.toFixed(2)} м² (каталог Powever)`, en: `Not available: no motor for shaft φ${D} and ${inp.areaM2.toFixed(2)} m² (Powever catalogue)`, th: `ไม่สามารถผลิตได้: ไม่มีมอเตอร์สำหรับเพลา φ${D} และ ${inp.areaM2.toFixed(2)} ตร.ม. (แคตตาล็อก Powever)` }));
     return null;
   }
 
   const material = cat.frameMaterials.options.find((m) => m.id === frame.material);
   const coverSet = material.motorCover[frame.sidePlate];
   const motorCover = coverSet ? coverSet[inp.driveSide] : null;
-  if (!motorCover) messages.push(warning('MOTOR_COVER_NO_SKU', `Нет кожуха мотора для боковины ${frame.sidePlate}`));
+  if (!motorCover) messages.push(warning('MOTOR_COVER_NO_SKU', { ru: `Нет кожуха мотора для боковины ${frame.sidePlate}`, en: `No motor cover for end plate ${frame.sidePlate}`, th: `ไม่มีฝาครอบมอเตอร์สำหรับแผ่นปิดข้าง ${frame.sidePlate}` }));
 
   // Кабель
   const hBlock = inp.controlBoxHeight ?? cat.drives.cable.hBlockDefault;

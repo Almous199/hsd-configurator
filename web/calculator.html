@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDA Calculator</title>
+<!-- Калькулятор SDA / SDA-DS (экран инженера). Макет: 08-calculator-ui/sda-calculator-mockup.html, согласован Alex 26.11.2026.
+     Вкладки Calculator (блоки 0–3, поля + превью) и Specification (3 листа, карта раскроя, сборка Zoho и CSV).
+     Сохранение — в общий справочник specs.html (папка Door calculation tool: calcs/). -->
+<style>
+:root{
+  --c-bg:#f5f4f0;--c-surf:#fff;--c-surf2:#faf9f6;--c-border:rgba(0,0,0,.1);--c-border2:rgba(0,0,0,.18);
+  --c-text:#1a1a18;--c-muted:#6b6b67;--c-accent:#185FA5;--c-accent-bg:#e6f0fa;
+  --c-success:#2e7d32;--c-success-bg:#e8f3e8;--c-warn:#8a5a00;--c-warn-bg:#fff4dc;--c-danger:#b3261e;--c-danger-bg:#fdecea;
+  --c-override:#FFE7A3;--r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif;font-size:14px;line-height:1.45;background:var(--c-bg);color:var(--c-text)}
+html[lang=th] .field label,html[lang=th] .sub,html[lang=th] .pvh,html[lang=th] .tw th{text-transform:none;letter-spacing:0}
+button,select,input,textarea{font:inherit;color:inherit}
+.appbar{display:flex;align-items:center;gap:14px;background:var(--c-surf);border-bottom:.5px solid var(--c-border);padding:10px 20px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
+.appbar .brand{font-weight:600;font-size:15px}
+.ver{background:var(--c-accent-bg);color:var(--c-accent);font-size:11px;font-weight:600;border-radius:20px;padding:2px 10px}
+.nav-tab{border:0;background:none;padding:6px 14px;border-radius:var(--r);color:var(--c-muted);cursor:pointer;text-decoration:none;font-size:14px}
+.nav-tab.on{background:var(--c-accent-bg);color:var(--c-accent)}
+.sp{flex:1}
+.lang{display:flex;border:.5px solid var(--c-border2);border-radius:20px;padding:2px}
+.lang button{border:0;background:none;padding:2px 12px;border-radius:16px;font-size:13px;color:var(--c-muted);cursor:pointer}
+.lang button.on{background:var(--c-accent-bg);color:var(--c-accent)}
+.banner{padding:8px 20px;font-size:13px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.banner.info{background:var(--c-accent-bg);color:#174a7c}
+.banner.warn{background:var(--c-warn-bg);color:var(--c-warn)}
+.banner.err{background:var(--c-danger-bg);color:var(--c-danger)}
+.banner.ok{background:var(--c-success-bg);color:var(--c-success)}
+.wrap{max-width:1500px;margin:0 auto;padding:20px}
+.row{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;margin-bottom:16px;align-items:start}
+@media (max-width:1000px){.row,.sheet-b{grid-template-columns:1fr!important}.pv{position:static!important}}
+.blk,.pv{background:var(--c-surf);border:.5px solid var(--c-border);border-radius:var(--rl);padding:18px 20px}
+.pv{position:sticky;top:64px}
+.bh{display:flex;align-items:center;gap:10px}
+.bn{width:22px;height:22px;border-radius:6px;background:var(--c-accent);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.bt{font-size:17px;font-weight:600}
+.bs{color:var(--c-muted);font-size:13px;margin:2px 0 14px 32px}
+.pill{margin-left:auto;font-size:12px;border-radius:20px;padding:1px 10px;background:#eceae3;color:var(--c-muted)}
+.pill.ok{background:var(--c-success-bg);color:var(--c-success)}
+.pill.ed{background:var(--c-override);color:#6a5000}
+.pill.wr{background:var(--c-warn-bg);color:var(--c-warn)}
+.pill.er{background:var(--c-danger-bg);color:var(--c-danger)}
+.pvh{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.sub{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin:14px 0 8px;border-top:.5px solid var(--c-border);padding-top:12px}
+.g{display:grid;gap:10px 12px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.s2{grid-column:span 2}.s4{grid-column:span 4}
+.field label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--c-muted);margin-bottom:3px}
+.field input,.field select,.field textarea{width:100%;border:.5px solid var(--c-border2);border-radius:var(--r);padding:6px 10px;background:var(--c-surf);min-height:34px}
+.field textarea{resize:vertical;min-height:52px}
+.field input[readonly]{background:var(--c-surf2);color:#444}
+.field .hint{font-size:11.5px;color:var(--c-muted);margin-top:2px}
+.field.ov input,.field.ov select,.field.ov textarea{background:var(--c-override)}
+.field .from{font-size:11.5px;color:#7a5c00;margin-top:2px}
+.field.bad input{border-color:var(--c-danger);background:var(--c-danger-bg)}
+.in-pre{display:flex;align-items:center;gap:6px}
+.in-pre b{font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;border:.5px solid var(--c-border2);border-radius:var(--r);padding:5px 12px;background:var(--c-surf);cursor:pointer;font-size:13px;white-space:nowrap;text-decoration:none}
+.btn:hover{background:#f0efe8}
+.btn:disabled{opacity:.45;cursor:default}
+.btn-primary{background:var(--c-accent);color:#fff;border-color:var(--c-accent)}
+.btn-primary:hover{background:#13497f}
+.toast{position:fixed;left:50%;bottom:72px;transform:translate(-50%,20px);opacity:0;pointer-events:none;transition:all .2s;z-index:60;max-width:min(720px,92vw);padding:10px 18px;border-radius:10px;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.ok{background:#2e7d32;color:#fff}.toast.warn{background:#fff4dc;color:#8a5a00;border:1px solid #f0c36d}.toast.err{background:#b3261e;color:#fff}
+.toast .tm{opacity:.8;margin-left:8px;font-size:12px}
+.saved-chip{display:none;align-items:center;padding:5px 12px;border-radius:8px;background:#2e7d32;color:#fff;font-weight:600;font-size:13px}
+.saved-chip.on{display:inline-flex}
+.btn-save{background:#2e7d32;color:#fff;border-color:#2e7d32;font-weight:600}.save-hint{font-size:12px;color:var(--c-danger,#c62828)}
+.btn-ok{background:var(--c-success-bg);color:var(--c-success);border-color:#b7d8b8}
+.btn-sm{padding:2px 9px;font-size:12px}
+.seg{display:inline-flex;border:.5px solid var(--c-border2);border-radius:var(--r);overflow:hidden}
+.seg button{border:0;background:var(--c-surf);padding:5px 12px;font-size:13px;cursor:pointer}
+.seg button+button{border-left:.5px solid var(--c-border2)}
+.seg button.on{background:var(--c-accent-bg);color:var(--c-accent);font-weight:600}
+.field.ov .seg button.on{background:var(--c-override);color:#6a5000}
+.okbox,.errbox,.wrbox{border-radius:var(--r);padding:8px 12px;font-size:13px;margin-top:10px}
+.okbox{background:var(--c-success-bg);color:var(--c-success)}
+.wrbox{background:var(--c-warn-bg);color:var(--c-warn)}
+.errbox{background:var(--c-danger-bg);color:var(--c-danger)}
+.msgs{font-size:13px}
+.msgs div{padding:2px 0}
+.msgs .e{color:var(--c-danger)}.msgs .w{color:var(--c-warn)}
+.src{display:flex;gap:10px;align-items:center;background:var(--c-surf2);border:.5px solid var(--c-border);border-radius:var(--r);padding:8px 12px;font-size:13px;margin-bottom:12px;flex-wrap:wrap}
+.tw{width:100%;border-collapse:collapse;font-size:13px}
+.tw th{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--c-muted);font-weight:500;text-align:left;padding:6px;background:#f2f1ec;border-bottom:.5px solid var(--c-border2)}
+.tw th.n,.tw td.n{text-align:right;font-variant-numeric:tabular-nums}
+.tw td{padding:4px 6px;border-bottom:.5px solid var(--c-border);vertical-align:middle}
+.tw input,.tw select{border:.5px solid var(--c-border2);border-radius:6px;padding:3px 6px;height:28px;background:#fff}
+.tw input.num{width:78px;text-align:right}
+.tw input.sku{width:150px}
+.tw input[readonly]{background:var(--c-surf2)}
+.tw tr.grp td{background:#f2f1ec;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:#444}
+.tw tr.ov td{background:#fff6d6}
+.tw tr.muted td{color:#999}
+.tag{font-size:10.5px;border-radius:10px;padding:0 7px;background:#eceae3;color:#555;white-space:nowrap}
+.tag.tr{background:#cfe6f7;color:#1d5a86}
+.tag.top{background:#e9e4f5;color:#5a3c94}
+.cnt{display:flex;align-items:center;gap:6px}
+.cnt b{min-width:22px;text-align:center;font-size:16px}
+svg{display:block;max-width:100%;height:auto;margin:0 auto}
+svg text{font-family:"Segoe UI",Arial,sans-serif}
+.dwg{background:#fff;border:.5px solid var(--c-border);border-radius:var(--r);padding:6px}
+.dwg svg{width:100%}
+#pvWind svg{max-height:360px}
+#pv3b svg{max-height:210px}
+#sp1cut svg{max-height:720px}
+.read{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.read div{background:var(--c-surf2);border:.5px solid var(--c-border);border-radius:var(--r);padding:6px 10px}
+.read small{display:block;font-size:11px;color:var(--c-muted)}
+.read b{font-size:20px;font-weight:600}
+.read b.bad{color:var(--c-danger)}.read b.good{color:var(--c-success)}
+.legend{font-size:12px;color:var(--c-muted);text-align:center;margin-top:4px}
+.calc-bar{position:sticky;bottom:0;background:rgba(255,255,255,.96);border-top:.5px solid var(--c-border2);padding:10px 20px;display:flex;gap:10px;align-items:center;z-index:15}
+.calc-bar .st{font-size:13px;color:var(--c-muted)}
+.sec-head h1{font-size:22px;font-weight:600}
+.sec-head p{color:var(--c-muted);font-size:13.5px;margin:2px 0 12px}
+.tbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.summary{background:#eceae3;border-radius:var(--r);padding:8px 14px;font-size:13px;color:#444;margin:12px 0}
+.panel{background:var(--c-surf);border:.5px solid var(--c-border);border-radius:var(--rl);padding:12px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px;font-size:13.5px}
+.panel .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted)}
+.panel label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.panel input[type=date]{border:.5px solid var(--c-border2);border-radius:6px;padding:2px 6px}
+.asm{border:1.5px solid var(--c-accent);background:#f4f8fc}
+.sheet{background:var(--c-surf);border:.5px solid var(--c-border);border-radius:var(--rl);padding:16px 18px;margin-bottom:16px}
+.sheet-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:12px}
+.sheet-h .meta{font-size:13px}.sheet-h .meta span{font-size:11px;letter-spacing:.06em;color:var(--c-muted);text-transform:uppercase;margin-right:6px}
+.sheet-h .ttl{text-align:right}.sheet-h .ttl b{font-size:18px;font-weight:600;display:block}
+.sheet-h .ttl small{font-size:11px;color:var(--c-muted);letter-spacing:.06em}
+.sheet-b{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+.kv{border:.5px solid var(--c-border);border-radius:var(--r);padding:6px 12px;margin-bottom:8px;font-size:13px}
+.kv div{display:flex;justify-content:space-between;gap:12px;border-bottom:.5px dashed var(--c-border);padding:3px 0}
+.kv div:last-child{border:0}
+.kv b{font-weight:600;text-align:right}
+.hidden{display:none!important}
+.handle{cursor:grab}
+body.view .blk input,body.view .blk select,body.view .blk textarea,body.view .blk button,body.view .tw input,body.view .tw select,body.view .rm,body.view .addrow{pointer-events:none}
+body.view .blk input,body.view .blk select,body.view .blk textarea,body.view .tw input{background:var(--c-surf2)}
+body.view .edit-only{display:none!important}
+body.view .tw input{border-color:transparent;background:transparent}body.view .tw .rm,body.view .addrow{visibility:hidden}
+body:not(.view) .view-only{display:none!important}
+@media print{
+  .toast,.saved-chip{display:none!important}
+  @page{size:A4 landscape;margin:8mm}
+  body{background:#fff}
+  .appbar,.banner,.calc-bar,.tbar,.panel,.summary,.sec-head,#tab-calc,.noprint,.rm,.addrow,.wrbox{display:none!important}
+  #tab-spec{display:block!important}
+  .wrap{padding:0;max-width:none}
+  .sheet{break-after:page;border:0;padding:0;margin:0}
+  .sheet.noprint-sheet{display:none!important}
+  .tw input{border:0;background:none;padding:0}
+  .tw tr.ov td{background:#eee}
+}
+</style>
+</head>
+<body>
+<div class="appbar">
+  <span class="brand">SDA Calculator</span><span class="ver" id="ver"></span>
+  <a class="nav-tab" id="lnkSpecs" href="#" data-i="specs">Specifications</a>
+  <button class="nav-tab on" data-tab="calc" data-i="tabCalc">Calculator</button>
+  <button class="nav-tab" data-tab="spec" data-i="tabSpec">Specification</button>
+  <span class="sp"></span>
+  <button class="btn btn-sm" id="fsBtn"></button>
+  <div class="lang"><button data-lang="en">EN</button><button data-lang="th">TH</button></div>
+</div>
+<div id="banner" class="banner hidden"></div>
+
+<!-- ===================================================== CALCULATOR -->
+<div id="tab-calc">
+<div class="wrap">
+
+<!-- 0 ORDER -->
+<div class="row">
+  <div class="blk">
+    <div class="bh"><span class="bn">0</span><span class="bt" data-i="b0">Order details</span><span class="pill" id="p0"></span></div>
+    <div class="bs" data-i="b0s">Order · customer · door · options — imported from the order form or filled in by hand</div>
+    <div class="src" id="src0"></div>
+    <div class="sub" data-i="order">Order</div>
+    <div class="g">
+      <div class="field"><label data-i="created">Created</label><input id="fCreated" readonly></div>
+      <div class="field" id="wSo"><label data-i="orderNo">Order no.</label><div class="in-pre"><b>DSO-</b><input id="fSo" inputmode="numeric"></div></div>
+      <div class="field" id="wPos"><label data-i="pos">Position</label><input id="fPos" inputmode="numeric"></div>
+      <div class="field" id="wQty"><label data-i="qty">Quantity</label><input id="fQty" type="number" min="1"></div>
+      <div class="field s2" id="wCust"><label data-i="customer">Customer</label><input id="fCust"></div>
+      <div class="field s2" id="wRef"><label data-i="ref">Reference / location</label><input id="fRef"></div>
+      <div class="field s4" id="wAddr"><label data-i="addr">Delivery address</label><textarea id="fAddr" rows="2"></textarea></div>
+    </div>
+    <div class="sub" data-i="door">Door</div>
+    <div class="g">
+      <div class="field" id="wW"><label data-i="W">Width W</label><input id="fW" type="number" step="10"><div class="hint">mm</div></div>
+      <div class="field" id="wH"><label data-i="H">Height H</label><input id="fH" type="number" step="10"><div class="hint" data-i="hMax">mm · max 6000</div></div>
+      <div class="field s2" id="wSupply"><label data-i="supply">Supply</label><select id="fSupply"><option value="own">Own production · SDA-DS</option><option value="outsourced">Bought complete · SDA</option></select><div class="hint" data-i="supplyHint">SDA is calculated too · becomes SDA-DS on Save</div></div>
+      <div class="field s2" id="wFrame"><label data-i="frame">Frame material</label><select id="fFrame"></select></div>
+      <div class="field" id="wFabric"><label data-i="fabric">Curtain</label><select id="fFabric"><option value="pvc">PVC 1100 g/m²</option><option value="mesh">PVC mesh (yellow)</option></select></div>
+      <div class="field" id="wColor"><label data-i="colour">Colour</label><select id="fColor"></select></div>
+      <div class="field" id="wDrive"><label data-i="driveSide">Drive side</label><div class="seg" id="sDrive"><button data-v="L" data-i="left">Left</button><button data-v="R" data-i="right">Right</button></div><div class="hint" data-i="fromInside">view from inside</div></div>
+      <div class="field" id="wCtrl"><label data-i="ctrlSide">Control box side</label><div class="seg" id="sCtrl"><button data-v="L" data-i="left">Left</button><button data-v="R" data-i="right">Right</button></div></div>
+      <div class="field" id="wCtrlH"><label data-i="ctrlH">Control box height</label><input id="fCtrlH" type="number" step="50"><div class="hint" data-i="fromFloor">mm from floor</div></div>
+      <div class="field" id="wTr"><label data-i="trSection">Transparent section</label><select id="fTr"></select></div>
+    </div>
+    <div class="sub" data-i="accFromOrder">Accessories (from order)</div>
+    <table class="tw" id="accTbl"></table>
+    <div style="margin-top:8px" class="edit-only"><button class="btn btn-sm" id="accAdd" data-i="accAdd">+ Add accessory</button></div>
+  </div>
+  <div class="pv">
+    <div class="pvh" data-i="status">Status</div>
+    <div class="msgs" id="msgs"></div>
+    <div class="pvh" style="margin-top:12px" data-i="frontView">Front view · from inside</div>
+    <div class="dwg" id="pv0"></div>
+  </div>
+</div>
+
+<!-- 1 CURTAIN -->
+<div class="row">
+  <div class="blk">
+    <div class="bh"><span class="bn">1</span><span class="bt" data-i="b1">Curtain</span><span class="pill" id="p1"></span></div>
+    <div class="bs" data-i="b1s">Section heights · wind bars · bottom profile · seal · winding on the shaft</div>
+    <div class="g">
+      <div class="field"><label data-i="curW">Curtain width</label><input id="cW" readonly><div class="hint" id="cWh"></div></div>
+      <div class="field"><label data-i="visH">Visible height</label><input id="cVis" readonly><div class="hint" data-i="visHint">H + 200 · in guides</div></div>
+      <div class="field"><label data-i="windbars">Wind bars</label><div class="cnt"><button class="btn btn-sm" id="nMinus">−</button><b id="nVal"></b><button class="btn btn-sm" id="nPlus">+</button><button class="btn btn-sm" id="nAuto" data-i="auto">auto</button></div><div class="hint" id="nHint"></div></div>
+      <div class="field"><label data-i="windbarProfile">Wind bar profile</label><input id="cWbp" readonly></div>
+    </div>
+    <div class="sub" data-i="secHeights">Section heights, mm (top → bottom, centre to centre of wind bars)</div>
+    <table class="tw" id="secTbl"></table>
+    <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm edit-only" id="resetL" data-i="resetLayout">Reset to standard layout</button><span id="chain" style="font-size:12.5px;color:var(--c-muted)"></span></div>
+    <div class="sub" data-i="bottomWinding">Bottom and winding</div>
+    <div class="g">
+      <div class="field s2"><label data-i="bottomProfile">Bottom profile</label><input id="cBp" readonly><div class="hint" id="cBph"></div></div>
+      <div class="field s2"><label data-i="bottomSeal">Bottom seal</label><input id="cSeal" readonly></div>
+      <div class="field" id="wTPvc"><label data-i="tPvc">PVC in roll</label><input id="fTPvc" type="number" step="0.05"><div class="hint">mm</div></div>
+      <div class="field" id="wTClr"><label data-i="tClr">Transparent in roll</label><input id="fTClr" type="number" step="0.05"><div class="hint">mm</div></div>
+      <div class="field" id="wTProf"><label data-i="tProf">Wind bar in roll</label><input id="fTProf" type="number" step="1"><div class="hint" data-i="tProfHint">mm · 50 along the curtain</div></div>
+      <div class="field"><label data-i="rollD">Roll Ø open</label><input id="cRoll" readonly><div class="hint" id="cRollH"></div></div>
+      <div class="field"><label data-i="blank">Curtain length</label><input id="cLen" readonly><div class="hint">H+200+Hb/2+πD</div></div>
+      <div class="field"><label data-i="wound">Wound on shaft</label><input id="cWound" readonly><div class="hint" data-i="woundHint">door open</div></div>
+    </div>
+  </div>
+  <div class="pv">
+    <div class="pvh"><span data-i="preview">Preview</span><span class="seg" style="margin-left:auto"><button data-p1="wind" class="on" data-i="winding">Winding</button><button data-p1="cur" data-i="curtainTab">Curtain</button></span></div>
+    <div id="p1wind">
+      <div class="read"><div><small data-i="minAngle">Min. angle between wind bars</small><b id="angNow">—</b></div><div><small data-i="idealAngle">Ideal · 80 % limit</small><b id="angIdeal">—</b></div></div>
+      <div class="dwg" id="pvWind"></div>
+      <div class="legend" data-i="dragHint">Drag a wind bar marker along the roll: the boundary between its two sections moves, the total height stays the same.</div>
+    </div>
+    <div id="p1cur" class="hidden"><div class="dwg" id="pvCur"></div></div>
+  </div>
+</div>
+
+<!-- 2 GUIDES -->
+<div class="row">
+  <div class="blk">
+    <div class="bh"><span class="bn">2</span><span class="bt" data-i="b2">Guides</span><span class="pill" id="p2"></span></div>
+    <div class="bs" data-i="b2s">Guide rails · brackets · photocells</div>
+    <div class="g">
+      <div class="field s2"><label data-i="rail">Guide rail</label><input id="gRail" readonly><div class="hint" data-i="railHint">from frame material, block 0</div></div>
+      <div class="field"><label data-i="railLen">Rail length</label><input id="gLen" readonly><div class="hint" data-i="railLenHint">H + 200 · 2 pcs</div></div>
+      <div class="field"><label data-i="sideSpace">Side space</label><input id="gSide" readonly><div class="hint" data-i="sideSpaceHint">drive / other side</div></div>
+    </div>
+    <div class="sub" data-i="photocells">Photocells</div>
+    <div class="g">
+      <div class="field" id="wPcPairs"><label data-i="pairs">Pairs</label><div class="seg" id="sPc"><button data-v="1">1</button><button data-v="2">2</button></div></div>
+      <div class="field" id="wPc1"><label data-i="level1">Level 1</label><input id="fPc1" type="number" step="50"><div class="hint" data-i="fromFloor">mm from floor</div></div>
+      <div class="field" id="wPc2"><label data-i="level2">Level 2</label><input id="fPc2" type="number" step="50"><div class="hint" data-i="fromFloor">mm from floor</div></div>
+      <div class="field"><label data-i="brackets">Brackets</label><input id="gPcBr" readonly></div>
+    </div>
+  </div>
+  <div class="pv">
+    <div class="pvh" data-i="frameView">Frame · general view from inside</div>
+    <div class="dwg" id="pv2"></div>
+  </div>
+</div>
+
+<!-- 3 SHAFT, BOX, DRIVE -->
+<div class="row">
+  <div class="blk">
+    <div class="bh"><span class="bn">3</span><span class="bt" data-i="b3">Shaft, box and drive</span><span class="pill" id="p3"></span></div>
+    <div class="bs" data-i="b3s">Header box · shaft · stub axles · bearings · motor</div>
+    <div class="g">
+      <div class="field s2" id="wPlate"><label data-i="shaftBox">Shaft · box</label><select id="fPlate"></select><div class="hint" id="plateHint"></div></div>
+      <div class="field s2" id="wPlateR"><label data-i="reason">Reason for manual choice</label><input id="fPlateR"></div>
+      <div class="field"><label data-i="boxLen">Box length</label><input id="hBox" readonly><div class="hint" id="hBoxH"></div></div>
+      <div class="field"><label data-i="shaftLen">Shaft length</label><input id="hShaft" readonly><div class="hint" id="hShaftH"></div></div>
+      <div class="field"><label data-i="beam">Beam MET50x25</label><input id="hBeam" readonly><div class="hint" data-i="beamHint">box − 1</div></div>
+      <div class="field"><label data-i="flanges">Flanges</label><input id="hFl" readonly></div>
+      <div class="field"><label data-i="axleDrive">Axle drive side</label><input id="hAx1" readonly></div>
+      <div class="field"><label data-i="axleOther">Axle other side</label><input id="hAx2" readonly></div>
+      <div class="field"><label data-i="bearings">Bearings</label><input id="hBr" readonly></div>
+      <div class="field"><label data-i="lockCup">Locking cup</label><input id="hCup" readonly></div>
+    </div>
+    <div class="sub" data-i="driveSub">Drive · Powever A2 (motor outside only)</div>
+    <div class="g">
+      <div class="field s2" id="wMotor"><label data-i="motor">Motor</label><select id="fMotor"></select><div class="hint" id="motHint"></div></div>
+      <div class="field s2" id="wMotorR"><label data-i="reason">Reason for manual choice</label><input id="fMotorR"></div>
+      <div class="field"><label data-i="ctrlUnit">Control unit</label><input id="dCu" readonly></div>
+      <div class="field"><label data-i="driveBracket">Drive bracket</label><input id="dPlate" readonly><div class="hint" data-i="byReducer">by motor reducer</div></div>
+      <div class="field"><label data-i="motorCover">Motor cover</label><input id="dCover" readonly></div>
+      <div class="field"><label data-i="bumper">Bumper</label><input id="dBump" readonly></div>
+      <div class="field"><label data-i="cable">Cable</label><input id="dCable" readonly><div class="hint" id="dCableH"></div></div>
+    </div>
+    <div id="chk3"></div>
+  </div>
+  <div class="pv">
+    <div class="pvh" data-i="topView">Shaft with axles and bearings · top view</div>
+    <div class="dwg" id="pv3"></div>
+    <div class="pvh" style="margin-top:12px" data-i="boxSection">Box section · roll check</div>
+    <div class="dwg" id="pv3b"></div>
+  </div>
+</div>
+</div>
+<div class="calc-bar">
+  <span class="st" id="calcSt"></span><span class="sp"></span>
+  <span class="save-hint edit-only" data-save-hint></span>
+  <button class="btn exit" data-i="exit">Exit without changes</button>
+  <button class="btn btn-save edit-only" id="btnSave2" data-i="saveShort">Save</button>
+  <button class="btn btn-primary" data-go="spec" data-i="toSpec">Specification →</button>
+</div>
+</div>
+
+<!-- ===================================================== SPECIFICATION -->
+<div id="tab-spec" class="hidden">
+<div class="wrap">
+  <div class="sec-head"><h1 data-i="specTitle">Specification</h1><p data-i="specSub">Built from the calculator · replace items, change quantity · manual changes are highlighted</p></div>
+  <div class="tbar">
+    <button class="btn edit-only" data-go="calc" data-i="backCalc">← Calculator</button>
+    <button class="btn btn-save edit-only" id="btnSave" data-i="save">Save — finish calculation</button>
+    <span class="save-hint edit-only" data-save-hint></span>
+    <button class="btn exit edit-only" data-i="exit">Exit without changes</button>
+    <span class="saved-chip view-only" id="savedChip"></span>
+    <button class="btn btn-primary view-only" id="btnEdit" data-i="edit">Edit</button>
+    <button class="btn view-only" id="btnCopy" data-i="copy">Copy</button>
+    <a class="btn view-only" id="btnBack" href="#" data-i="backSpecs">← Specifications</a>
+  </div>
+  <div id="specWarn"></div>
+  <div class="summary" id="summary"></div>
+  <div class="panel asm" id="asmPanel">
+    <span class="lbl" data-i="zohoAsm">Zoho assembly</span>
+    <label><input type="radio" name="asm" value="SDA-DS"> <b>SDA-DS</b> · <span data-i="asmAll">whole door · sheets 1–3</span></label>
+    <label><input type="radio" name="asm" value="DUS-055"> <b>DUS-055</b> · <span data-i="asmCur">curtain only · sheet 1</span></label>
+    <span class="sp"></span>
+    <span><span data-i="no">No.</span> <b id="bun"></b></span><span><span data-i="qtyAsm">Qty to assemble</span> <b id="asmQty"></b></span>
+    <label><span data-i="date">Date</span> <input type="date" id="asmDate"></label>
+    <button class="btn btn-primary" id="btnCsv" data-i="csv">Export CSV for Zoho</button>
+  </div>
+  <div class="panel">
+    <span class="lbl" data-i="printSheets">Print sheets</span>
+    <label><input type="checkbox" class="prn" value="1" checked> 1 <span data-i="b1">Curtain</span></label>
+    <label><input type="checkbox" class="prn" value="2" checked> 2 <span data-i="b2">Guides</span></label>
+    <label><input type="checkbox" class="prn" value="3" checked> 3 <span data-i="b3">Shaft, box and drive</span></label>
+    <span class="sp"></span><button class="btn btn-primary" id="btnPrint" data-i="print">Print / PDF</button>
+  </div>
+  <div id="sheets"></div>
+</div>
+</div>
+<datalist id="skuList"></datalist>
+<input type="file" id="openFile" accept=".json,application/json" class="hidden">
+<script type="module" src="./calculator.js"></script>
+</body>
+</html>

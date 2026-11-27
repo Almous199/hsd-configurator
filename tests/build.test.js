@@ -1,4 +1,4 @@
-// Готовый файл формы dist/sda-order-form.html должен совпадать со свежей сборкой (не забыть npm run build).
+// Готовые файлы dist/ должны совпадать со свежей сборкой (не забыть npm run build).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -9,11 +9,13 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-test('dist/sda-order-form.html собран из текущего кода и каталогов', () => {
-  const out = join(mkdtempSync(join(tmpdir(), 'sda-')), 'form.html');
+test('dist/ собран из текущего кода и каталогов', () => {
+  const out = mkdtempSync(join(tmpdir(), 'sda-'));
   execFileSync(process.execPath, [join(root, 'scripts/build-standalone.js'), out]);
-  const fresh = readFileSync(out, 'utf8');
-  assert.ok(fresh.includes('window.__CATALOGS__'));
-  assert.ok(fresh.includes('products/hsr/index.js'));
-  assert.equal(readFileSync(join(root, 'dist/sda-order-form.html'), 'utf8'), fresh, 'dist устарел: выполните npm run build');
+  for (const [file, mod] of [['sda-order-form.html', 'products/hsr/index.js'], ['sda-calculator.html', 'products/hsr/winding.js']]) {
+    const fresh = readFileSync(join(out, file), 'utf8');
+    assert.ok(fresh.includes('window.__CATALOGS__'));
+    assert.ok(fresh.includes(mod), `${file}: нет модуля ${mod}`);
+    assert.equal(readFileSync(join(root, 'dist', file), 'utf8'), fresh, `dist/${file} устарел: выполните npm run build`);
+  }
 });

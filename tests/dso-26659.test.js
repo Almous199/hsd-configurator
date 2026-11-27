@@ -87,7 +87,8 @@ test('спецификация на одни ворота в единицах Zo
   const pvc = spec.lines.find((l) => l.partId === 'pvc');
   assert.equal(pvc.qty, 7.024); // 2390 × (1094 + 2·84 + 1677)
   assert.equal(line(spec, 'HSD 5005'), undefined); // докупать кабель не нужно
-  assert.equal(line(spec, 'Orca'), undefined); // аксессуары идут отдельной строкой SO
+  assert.equal(line(spec, 'Orca').qty, 1); // аксессуары из заказа входят в сборку SDA-DS (Alex 26.11)
+  assert.equal(line(spec, 'Orca').section, 'drive');
   assert.equal(spec.bundleNumber, 'BUN-26659-2');
 });
 
@@ -109,4 +110,29 @@ test('ручная раскладка с чертежа (4 ветровика, �
   assert.equal(r.calc.curtain.sections.at(-1).h, 1060);
   assert.equal(line(r.spec, 'LF-R031').qty, 8.56);
   assert.equal(line(r.spec, 'LF-R043').qty, 19.26);
+});
+
+test('намотка с утолщением: Ø рулона открытых ворот и разнос ветровиков', () => {
+  const w = calc.curtain.winding;
+  assert.equal(calc.curtain.rollDiameter, w.rollDiameter);
+  assert.equal(w.bars.length, 2);
+  assert.ok(w.okAngle, `мин. угол ${w.minAngle}`);
+  assert.ok(w.minAngle > 160 && w.minAngle <= 180, String(w.minAngle));
+  // висит от рулона до верха проёма: 200 + 274/2 − 57 = 280
+  assert.equal(w.woundLength, Math.round(calc.curtain.lengthExact - 280));
+});
+
+test('высоты по центрам ветровиков: нижняя от низа резинки, верхняя до низа короба, сумма H+200', () => {
+  const c = calc.curtain;
+  assert.deepEqual(c.pitches, [1155, 610, 1035]);
+  assert.deepEqual(c.barCentres, [1155, 1765]);
+  assert.equal(c.pitches.reduce((a, b) => a + b, 0), 2600 + 200);
+});
+
+test('фотоэлементы: 1 пара на 400 по умолчанию, вторая пара удваивает кронштейны', () => {
+  assert.equal(line(spec, 'LF-R041').qty, 2);
+  const two = calculateHsr({ ...doc, options: { ...doc.options, photocells: { pairs: 2, levels: [400, 1000] } } }, cat);
+  assert.equal(line(two.spec, 'LF-R041').qty, 4);
+  const bad = calculateHsr({ ...doc, options: { ...doc.options, photocells: { pairs: 1, levels: [2700] } } }, cat);
+  assert.ok(codes(bad.calc).includes('PHOTOCELL_LEVEL'));
 });
