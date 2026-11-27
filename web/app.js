@@ -149,26 +149,30 @@ function txt(p,x,y,s,a={}){ const t=el('text',{x,y,...a},p); t.textContent=s; re
 const DIM='#b0127a', LVL='#e8963a';
 function hdim(p,x1,x2,y,label,e0){ const g=el('g',{stroke:DIM,'stroke-width':7,fill:'none'},p);
   if(e0!==undefined){ const d=y>e0?40:-40; el('line',{x1,y1:e0,x2:x1,y2:y+d},g); el('line',{x1:x2,y1:e0,x2,y2:y+d},g); }
-  el('line',{x1,y1:y,x2,y2:y,'marker-start':'url(#ar)','marker-end':'url(#ar)'},g);
+  el('line',{x1,y1:y,x2,y2:y,'marker-start':`url(#${DP}ar)`,'marker-end':`url(#${DP}ar)`},g);
   txt(p,(x1+x2)/2,y-25,label,{'text-anchor':'middle',fill:DIM,'font-size':105}); }
 function vdim(p,x,y1,y2,label,e0){ const g=el('g',{stroke:DIM,'stroke-width':7,fill:'none'},p);
   if(e0!==undefined){ const d=x>e0?40:-40; el('line',{x1:e0,y1,x2:x+d,y2:y1},g); el('line',{x1:e0,y1:y2,x2:x+d,y2},g); }
-  el('line',{x1:x,y1,x2:x,y2,'marker-start':'url(#ar)','marker-end':'url(#ar)'},g);
+  el('line',{x1:x,y1,x2:x,y2,'marker-start':`url(#${DP}ar)`,'marker-end':`url(#${DP}ar)`},g);
   const cy=(y1+y2)/2; txt(p,x-25,cy,label,{'text-anchor':'middle',fill:DIM,'font-size':105,transform:`rotate(-90 ${x-25} ${cy})`}); }
 
+// id градиентов уникальны для каждого svg: в печати скрытый эскиз формы (display:none) не отдаёт свои градиенты бланку,
+// и окно с рамой печатались без заливки (Alex 27.11, ч/б бланк).
+let DP = '';
 function defs(svg, pvc){
+  DP = (svg.id || 'svg') + '-';
   const d=el('defs',{},svg);
-  d.innerHTML=`<marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="60" markerHeight="60" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 2.5 L10 5 L0 7.5z" fill="${DIM}"/></marker>
-  <linearGradient id="alu" x1="0" x2="1"><stop offset="0" stop-color="#aeb5bd"/><stop offset=".35" stop-color="#f3f5f7"/><stop offset=".7" stop-color="#c3c9cf"/><stop offset="1" stop-color="#8f979f"/></linearGradient>
-  <linearGradient id="aluh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f3f5"/><stop offset=".5" stop-color="#c0c6cc"/><stop offset="1" stop-color="#8e969e"/></linearGradient>
-  <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dd"/><stop offset="1" stop-color="#aeb5bc"/></linearGradient>
-  <linearGradient id="hoodv" x1="0" x2="1"><stop offset="0" stop-color="#b9c0c7"/><stop offset=".4" stop-color="#e9ecef"/><stop offset="1" stop-color="#aab1b8"/></linearGradient>
-  <linearGradient id="sheen" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".16"/><stop offset=".55" stop-color="#fff" stop-opacity=".02"/><stop offset=".8" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>
-  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef7fd"/><stop offset=".5" stop-color="#d3e9f6"/><stop offset="1" stop-color="#b9d9ec"/></linearGradient>
-  <linearGradient id="ss" x1="0" x2="1"><stop offset="0" stop-color="#9da6ae"/><stop offset=".25" stop-color="#e8edf1"/><stop offset=".5" stop-color="#b4bcc4"/><stop offset=".75" stop-color="#f4f7f9"/><stop offset="1" stop-color="#8d969f"/></linearGradient>
-  <pattern id="floor" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="60" stroke="#8a929b" stroke-width="7"/></pattern>
-  <pattern id="mesh" width="70" height="70" patternUnits="userSpaceOnUse"><path d="M0 0H70M0 0V70" stroke="#b8961c" stroke-opacity=".55" stroke-width="5" fill="none"/></pattern>
-  <pattern id="sand" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="3.5" fill="#9aa3ad"/><circle cx="30" cy="30" r="3.5" fill="#9aa3ad"/></pattern>`;
+  d.innerHTML=`<marker id="${DP}ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="60" markerHeight="60" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 2.5 L10 5 L0 7.5z" fill="${DIM}"/></marker>
+  <linearGradient id="${DP}alu" x1="0" x2="1"><stop offset="0" stop-color="#aeb5bd"/><stop offset=".35" stop-color="#f3f5f7"/><stop offset=".7" stop-color="#c3c9cf"/><stop offset="1" stop-color="#8f979f"/></linearGradient>
+  <linearGradient id="${DP}aluh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f3f5"/><stop offset=".5" stop-color="#c0c6cc"/><stop offset="1" stop-color="#8e969e"/></linearGradient>
+  <linearGradient id="${DP}hood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dd"/><stop offset="1" stop-color="#aeb5bc"/></linearGradient>
+  <linearGradient id="${DP}hoodv" x1="0" x2="1"><stop offset="0" stop-color="#b9c0c7"/><stop offset=".4" stop-color="#e9ecef"/><stop offset="1" stop-color="#aab1b8"/></linearGradient>
+  <linearGradient id="${DP}sheen" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".16"/><stop offset=".55" stop-color="#fff" stop-opacity=".02"/><stop offset=".8" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>
+  <linearGradient id="${DP}glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef7fd"/><stop offset=".5" stop-color="#d3e9f6"/><stop offset="1" stop-color="#b9d9ec"/></linearGradient>
+  <linearGradient id="${DP}ss" x1="0" x2="1"><stop offset="0" stop-color="#9da6ae"/><stop offset=".25" stop-color="#e8edf1"/><stop offset=".5" stop-color="#b4bcc4"/><stop offset=".75" stop-color="#f4f7f9"/><stop offset="1" stop-color="#8d969f"/></linearGradient>
+  <pattern id="${DP}floor" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="60" stroke="#8a929b" stroke-width="7"/></pattern>
+  <pattern id="${DP}mesh" width="70" height="70" patternUnits="userSpaceOnUse"><path d="M0 0H70M0 0V70" stroke="#b8961c" stroke-opacity=".55" stroke-width="5" fill="none"/></pattern>
+  <pattern id="${DP}sand" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="3.5" fill="#9aa3ad"/><circle cx="30" cy="30" r="3.5" fill="#9aa3ad"/></pattern>`;
 }
 
 function checkbox(p,x,y,on,cb,label,anchor,lc){
@@ -211,18 +215,18 @@ function draw(svg, mode){
     });
   }
   // floor
-  el('rect',{x:xL-300,y:0,width:(xR-xL)+600,height:70,fill:'url(#floor)'},g);
+  el('rect',{x:xL-300,y:0,width:(xR-xL)+600,height:70,fill:`url(#${DP}floor)`},g);
   el('line',{x1:xL-300,y1:0,x2:xR+300,y2:0,stroke:'#1b1f24','stroke-width':14},g);
   // curtain
   el('rect',{x:a,y:-GT,width:W,height:GT,fill:pvc},g);
-  if(S.fabric==='mesh') el('rect',{x:a,y:-GT,width:W,height:GT,fill:'url(#mesh)'},g); // сетка в прозрачном жёлтом ПВХ
-  el('rect',{x:a,y:-GT,width:W,height:GT,fill:'url(#sheen)'},g);
+  if(S.fabric==='mesh') el('rect',{x:a,y:-GT,width:W,height:GT,fill:`url(#${DP}mesh)`},g); // сетка в прозрачном жёлтом ПВХ
+  el('rect',{x:a,y:-GT,width:W,height:GT,fill:`url(#${DP}sheen)`},g);
   // transparent sections (whole section between profiles)
   for(let i=1;i<=n;i++){ if(!S.vision.has(i)) continue;
     // окно на всё поле секции: по ширине между направляющими и по высоте между профилями, без полосок ткани (Alex 27.11)
     const y0=yb[i-1]+(i>1?20:0), y1=yb[i]-(i<n?20:0), m=0;
     const px=a, pw=W, py=-(y1-m), ph=(y1-y0)-2*m - (i===1?60:0);
-    el('rect',{x:px,y:py,width:pw,height:ph,fill:'url(#glass)'},g);
+    el('rect',{x:px,y:py,width:pw,height:ph,fill:`url(#${DP}glass)`},g);
     el('line',{x1:px,y1:py,x2:px+pw,y2:py,stroke:'#7fa9c4','stroke-width':6},g);
     el('line',{x1:px,y1:py+ph,x2:px+pw,y2:py+ph,stroke:'#7fa9c4','stroke-width':6},g);
     const k=Math.max(2,Math.round(pw/500));
@@ -231,19 +235,19 @@ function draw(svg, mode){
       el('line',{x1:rx-90,y1:py+ph*0.66,x2:rx+100,y2:py+ph*0.48,stroke:'#fff','stroke-width':9,opacity:.8},g); }
   }
   // wind struts between sections
-  for(let i=1;i<n;i++){ const y=-(yb[i]-20); el('rect',{x:a-guideW+20,y:y-22,width:W+2*guideW-40,height:44,fill:'url(#aluh)',stroke:'#6f7780','stroke-width':4},g); }
+  for(let i=1;i<n;i++){ const y=-(yb[i]-20); el('rect',{x:a-guideW+20,y:y-22,width:W+2*guideW-40,height:44,fill:`url(#${DP}aluh)`,stroke:'#6f7780','stroke-width':4},g); }
   // bottom profile + seal
-  el('rect',{x:a,y:-85,width:W,height:60,fill:'url(#aluh)',stroke:'#6f7780','stroke-width':4},g);
+  el('rect',{x:a,y:-85,width:W,height:60,fill:`url(#${DP}aluh)`,stroke:'#6f7780','stroke-width':4},g);
   el('rect',{x:a+10,y:-25,width:W-20,height:25,fill:'#22262b'},g);
   // guides with photocells
   [a-guideW, a+W].forEach(gx=>{
-    el('rect',{x:gx,y:-GT,width:guideW,height:GT,fill:S.guide==='ss'?'url(#ss)':'url(#alu)',stroke:'#59616a','stroke-width':6},g);
+    el('rect',{x:gx,y:-GT,width:guideW,height:GT,fill:S.guide==='ss'?`url(#${DP}ss)`:`url(#${DP}alu)`,stroke:'#59616a','stroke-width':6},g);
     el('line',{x1:gx+guideW/2,y1:-GT+40,x2:gx+guideW/2,y2:-10,stroke:'#7d858d','stroke-width':5},g);
     el('rect',{x:gx+25,y:-380,width:70,height:90,rx:10,fill:'#1b1f24'},g); el('circle',{cx:gx+60,cy:-335,r:16,fill:'#e33'},g);
   });
   // top box
   const ext=(S.guide==='ss'?184:230)/2, bx0=a-ext, bx1=a+W+ext;   // box length W+230 alu / W+184 ss
-  el('rect',{x:bx0,y:top,width:bx1-bx0,height:boxH,fill:'url(#hood)',stroke:'#59616a','stroke-width':8},g);
+  el('rect',{x:bx0,y:top,width:bx1-bx0,height:boxH,fill:`url(#${DP}hood)`,stroke:'#59616a','stroke-width':8},g);
   el('line',{x1:bx0,y1:top+boxH*0.72,x2:bx1,y2:top+boxH*0.72,stroke:'#9aa2aa','stroke-width':6},g);
   for(let x=bx0+120;x<bx1-60;x+=600) el('circle',{cx:x,cy:top+60,r:11,fill:'#7d858d'},g);
   txt(g,(bx0+bx1)/2,top+boxH*0.47,'DOORHAN SIAM',{'text-anchor':'middle','font-size':Math.min(110,W/18),'font-weight':700,fill:'#56606a','letter-spacing':8});
@@ -251,7 +255,7 @@ function draw(svg, mode){
   const freeX = S.motor==='L' ? bx1 : bx0-30;
   el('rect',{x:freeX,y:top-10,width:30,height:boxH+20,fill:'#8e969e'},g);
   const mx = S.motor==='L' ? xL : bx1+5, mw = S.motor==='L' ? bx0-5-xL : xR-(bx1+5);
-  el('rect',{x:mx,y:top-30,width:mw,height:S.coverH,rx:30,fill:'url(#hoodv)',stroke:'#59616a','stroke-width':8},g);
+  el('rect',{x:mx,y:top-30,width:mw,height:S.coverH,rx:30,fill:`url(#${DP}hoodv)`,stroke:'#59616a','stroke-width':8},g);
   el('line',{x1:mx+20,y1:top+boxH*0.72,x2:mx+mw-20,y2:top+boxH*0.72,stroke:'#9aa2aa','stroke-width':6},g);
   for(let i=0;i<4;i++) el('rect',{x:mx+mw*0.25,y:top+30+i*55,width:mw*0.5,height:16,rx:8,fill:'#8e969e'},g);
   // controller
@@ -289,13 +293,13 @@ function draw(svg, mode){
   vdim(g, cdx, cyB+ch, 0, String(S.ctrlH), S.ctrl==='L'?cxB+cw:cxB);
 
   // section view
-  el('rect',{x:XS-100,y:top-150,width:100,height:GT+boxH+150-H,fill:'url(#sand)',stroke:'#1b1f24','stroke-width':8},g);
-  el('rect',{x:XS-300,y:0,width:boxD+600,height:70,fill:'url(#floor)'},g);
+  el('rect',{x:XS-100,y:top-150,width:100,height:GT+boxH+150-H,fill:`url(#${DP}sand)`,stroke:'#1b1f24','stroke-width':8},g);
+  el('rect',{x:XS-300,y:0,width:boxD+600,height:70,fill:`url(#${DP}floor)`},g);
   el('line',{x1:XS-300,y1:0,x2:XS+boxD+300,y2:0,stroke:'#1b1f24','stroke-width':14},g);
-  el('rect',{x:XS,y:-GT,width:guideD,height:GT,fill:S.guide==='ss'?'url(#ss)':'url(#alu)',stroke:'#59616a','stroke-width':6},g);
+  el('rect',{x:XS,y:-GT,width:guideD,height:GT,fill:S.guide==='ss'?`url(#${DP}ss)`:`url(#${DP}alu)`,stroke:'#59616a','stroke-width':6},g);
   el('line',{x1:XS+guideD/2,y1:-H,x2:XS+guideD/2,y2:-60,stroke:pvc,'stroke-width':14},g);
   const c=40;
-  el('path',{d:`M${XS} ${top} H${XS+boxD-c} L${XS+boxD} ${top+c} V${top+boxH-c} L${XS+boxD-c} ${top+boxH} H${XS} Z`,fill:'url(#hood)',stroke:'#1b1f24','stroke-width':8},g);
+  el('path',{d:`M${XS} ${top} H${XS+boxD-c} L${XS+boxD} ${top+c} V${top+boxH-c} L${XS+boxD-c} ${top+boxH} H${XS} Z`,fill:`url(#${DP}hood)`,stroke:'#1b1f24','stroke-width':8},g);
   el('circle',{cx:XS+boxD*0.45,cy:top+boxH*0.48,r:Math.min(boxD,boxH)*0.3,fill:pvc,stroke:'#1b1f24','stroke-width':6},g);
   el('circle',{cx:XS+boxD*0.45,cy:top+boxH*0.48,r:28,fill:'#d7dbe0',stroke:'#1b1f24','stroke-width':5},g);
   hdim(g,XS,XS+boxD,top-140,String(boxD),top-40);
