@@ -59,7 +59,7 @@ export function calcCurtain(inp, frame, cat, messages) {
   const windbar = cat.profiles.windbar.find((p) => width <= (p.maxCurtainWidth ?? Infinity) && (p.minCurtainWidthExclusive == null || width > p.minCurtainWidthExclusive));
   const bottom = cat.profiles.bottom.find((p) => width <= (p.maxCurtainWidth ?? Infinity) && (p.minCurtainWidthExclusive == null || width > p.minCurtainWidthExclusive));
   if (!windbar.sku || !bottom.sku) {
-    messages.push(warning('REINFORCED_PROFILE', `Ширина полотна ${width} > 5000: нужен усиленный ветровик и нижний профиль, артикулов в Zoho нет`));
+    messages.push(warning('REINFORCED_PROFILE', { ru: `Ширина полотна ${width} > 5000: нужен усиленный ветровик и нижний профиль, артикулов в Zoho нет`, en: `Curtain width ${width} > 5000: reinforced wind bar and bottom profile needed, no SKUs in Zoho`, th: `ความกว้างม่าน ${width} > 5000: ต้องใช้โปรไฟล์กันลมและโปรไฟล์ล่างแบบเสริม ยังไม่มี SKU ใน Zoho` }));
   }
 
   // Ткань
@@ -81,7 +81,7 @@ export function calcCurtain(inp, frame, cat, messages) {
   const rollDiameter = winding.rollDiameter;
   if (windbars > 1 && !winding.okAngle) {
     messages.push(warning('WINDBARS_OVERLAP',
-      `Ветровики на рулоне ближе ${Math.round(0.8 * winding.idealAngle)}° (мин. ${Math.round(winding.minAngle)}° при идеале ${Math.round(winding.idealAngle)}°)`));
+      { ru: `Ветровики на рулоне ближе ${Math.round(0.8 * winding.idealAngle)}° (мин. ${Math.round(winding.minAngle)}° при идеале ${Math.round(winding.idealAngle)}°)`, en: `Wind bars on the roll are closer than ${Math.round(0.8 * winding.idealAngle)}° (min ${Math.round(winding.minAngle)}°, ideal ${Math.round(winding.idealAngle)}°)`, th: `โปรไฟล์กันลมบนม้วนชิดกันเกิน ${Math.round(0.8 * winding.idealAngle)}° (ต่ำสุด ${Math.round(winding.minAngle)}° ค่าที่ดี ${Math.round(winding.idealAngle)}°)` }));
   }
 
   // Высоты по центрам ветровиков (калькулятор): сумма = H + 200
@@ -117,10 +117,10 @@ function resolvePvcSku(id, cat, messages) {
   const pvc = cat.profiles.pvc;
   if (id.startsWith('mesh-')) {
     const sku = pvc.mesh[id.slice(5)];
-    if (!sku) messages.push(warning('PVC_NO_SKU', `Сетки ПВХ «${id}» нет в Zoho: строку ткани нужно дописать вручную`));
+    if (!sku) messages.push(warning('PVC_NO_SKU', { ru: `Сетки ПВХ «${id}» нет в Zoho: строку ткани нужно дописать вручную`, en: `PVC mesh «${id}» is not in Zoho: add the fabric line by hand`, th: `ไม่มีตาข่าย PVC «${id}» ใน Zoho: เพิ่มรายการผ้าด้วยมือ` }));
     return sku || null;
   }
   const sku = pvc.colors[id];
-  if (!sku) messages.push(warning('PVC_NO_SKU', `ПВХ «${id}» нет в Zoho: строку ткани нужно дописать вручную`));
+  if (!sku) messages.push(warning('PVC_NO_SKU', { ru: `ПВХ «${id}» нет в Zoho: строку ткани нужно дописать вручную`, en: `PVC «${id}» is not in Zoho: add the fabric line by hand`, th: `ไม่มี PVC «${id}» ใน Zoho: เพิ่มรายการผ้าด้วยมือ` }));
   return sku || null;
 }

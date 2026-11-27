@@ -12,7 +12,7 @@ export function getOverride(options, path, messages) {
   if (found.length === 0) return undefined;
   const o = found[found.length - 1];
   if (!o.reason || !String(o.reason).trim()) {
-    messages.push(error('OVERRIDE_NO_REASON', `Ручная замена «${path}» без причины не принимается`, { path }));
+    messages.push(error('OVERRIDE_NO_REASON', { ru: `Ручная замена «${path}» без причины не принимается`, en: `Manual change «${path}» needs a reason`, th: `การเปลี่ยน «${path}» ด้วยมือต้องระบุเหตุผล` }, { path }));
     return undefined;
   }
   return o;

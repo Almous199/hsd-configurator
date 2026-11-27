@@ -39,13 +39,13 @@ export function calcLayout(inp, shaftDia, cat, messages) {
   const ov = getOverride(inp.options, 'curtain.sections', messages);
   if (ov) {
     if (!Array.isArray(ov.value) || ov.value.length < 1 || ov.value.some((v) => !(v > 0))) {
-      messages.push(error('LAYOUT_MANUAL', 'Ручная раскладка: нужен массив высот секций снизу вверх без верхней'));
+      messages.push(error('LAYOUT_MANUAL', { ru: 'Ручная раскладка: нужен массив высот секций снизу вверх без верхней', en: 'Manual layout: section heights from bottom up, without the top one, are required', th: 'การจัดวางด้วยมือ: ต้องระบุความสูงเซกชันจากล่างขึ้นบน ไม่รวมเซกชันบน' }));
       return null;
     }
     below = ov.value.map((v) => Math.round(v));
     windowSection = null;
     source = 'manual';
-    messages.push(warning('OVERRIDE_APPLIED', `Раскладка секций задана вручную: ${ov.reason}`));
+    messages.push(warning('OVERRIDE_APPLIED', { ru: `Раскладка секций задана вручную: ${ov.reason}`, en: `Section layout set manually: ${ov.reason}`, th: `กำหนดการจัดวางเซกชันด้วยมือ: ${ov.reason}` }));
   } else {
     const n = windbarsFor(H, shaftDia, cat.layouts);
     const rows = cat.layouts.rows.filter((r) => r.shaftDia === shaftDia && r.windbars === n).sort((a, b) => a.H - b.H);
@@ -53,7 +53,7 @@ export function calcLayout(inp, shaftDia, cat, messages) {
     for (const r of rows) if (r.H <= H) row = r;
     if (!row) {
       row = rows[0];
-      if (H < row.H && n === 2) messages.push(warning('LAYOUT_BELOW_TABLE', `H ${H} ниже таблицы раскладок (от ${row.H}), взята строка ${row.H}`));
+      if (H < row.H && n === 2) messages.push(warning('LAYOUT_BELOW_TABLE', { ru: `H ${H} ниже таблицы раскладок (от ${row.H}), взята строка ${row.H}`, en: `H ${H} is below the layout table (from ${row.H}), row ${row.H} used`, th: `H ${H} ต่ำกว่าตารางการจัดวาง (เริ่ม ${row.H}) ใช้แถว ${row.H}` }));
     }
     below = row.sectionsBelowTop.slice();
     windowSection = row.windowSection;
@@ -63,7 +63,7 @@ export function calcLayout(inp, shaftDia, cat, messages) {
     const extra = inp.extraWindbars;
     if (extra) {
       if (!Number.isInteger(extra) || extra < 0 || extra > cur.manualExtraWindbarsMax) {
-        messages.push(error('EXTRA_WINDBARS', `Ручной «+»: от 0 до ${cur.manualExtraWindbarsMax}`));
+        messages.push(error('EXTRA_WINDBARS', { ru: `Ручной «+»: от 0 до ${cur.manualExtraWindbarsMax}`, en: `Manual «+»: 0 to ${cur.manualExtraWindbarsMax}`, th: `เพิ่มด้วยมือ «+»: 0 ถึง ${cur.manualExtraWindbarsMax}` }));
         return null;
       }
       // +1: делим нижнюю секцию, окно поднимается на одну секцию
@@ -79,21 +79,21 @@ export function calcLayout(inp, shaftDia, cat, messages) {
       }
       source = `standard+${extra}`;
       messages.push(warning('LAYOUT_SPLIT_PROVISIONAL',
-        'Дополнительные ветровики разделили секции пополам; подгонка по намотке ещё не подключена'));
+        { ru: 'Дополнительные ветровики разделили секции пополам; проверьте углы на рулоне в калькуляторе', en: 'Extra wind bars split the sections in half; check the angles on the roll in the calculator', th: 'โปรไฟล์กันลมที่เพิ่มแบ่งเซกชันครึ่งหนึ่ง ตรวจมุมบนม้วนในเครื่องคำนวณ' }));
     }
   }
 
   const windbars = below.length;
   if (windbars < cat.profiles.windbarCount.min || windbars > cat.profiles.windbarCount.max) {
-    messages.push(error('WINDBAR_COUNT', `Ветровиков ${windbars}, допустимо ${cat.profiles.windbarCount.min}–${cat.profiles.windbarCount.max}`));
+    messages.push(error('WINDBAR_COUNT', { ru: `Ветровиков ${windbars}, допустимо ${cat.profiles.windbarCount.min}–${cat.profiles.windbarCount.max}`, en: `${windbars} wind bars, allowed ${cat.profiles.windbarCount.min}–${cat.profiles.windbarCount.max}`, th: `โปรไฟล์กันลม ${windbars} อัน อนุญาต ${cat.profiles.windbarCount.min}–${cat.profiles.windbarCount.max}` }));
   }
   const topVisible = topVisibleOf(H, below, cur);
   if (topVisible <= 0) {
-    messages.push(error('TOP_SECTION_NEGATIVE', `Секции не помещаются в высоту ${H}: верхняя секция ${topVisible} мм`));
+    messages.push(error('TOP_SECTION_NEGATIVE', { ru: `Секции не помещаются в высоту ${H}: верхняя секция ${topVisible} мм`, en: `Sections do not fit into height ${H}: top section ${topVisible} mm`, th: `เซกชันไม่พอดีกับความสูง ${H}: เซกชันบน ${topVisible} มม.` }));
   }
   if (topVisible + cur.guideAboveOpening > cur.topLimitAboveGuide) {
     messages.push(warning('TOP_SECTION_LONG',
-      `Верхняя секция до верха направляющей ${topVisible + cur.guideAboveOpening} мм больше Top${cur.topLimitAboveGuide}`));
+      { ru: `Верхняя секция до верха направляющей ${topVisible + cur.guideAboveOpening} мм больше Top${cur.topLimitAboveGuide}`, en: `Top section to guide top ${topVisible + cur.guideAboveOpening} mm is over Top${cur.topLimitAboveGuide}`, th: `เซกชันบนถึงปลายรางนำ ${topVisible + cur.guideAboveOpening} มม. เกิน Top${cur.topLimitAboveGuide}` }));
   }
 
   // Прозрачные секции: номера снизу, 1 — нижняя. По умолчанию окно из раскладки.
@@ -102,7 +102,7 @@ export function calcLayout(inp, shaftDia, cat, messages) {
   const sectionsCount = windbars + 1;
   for (const t of transparent) {
     if (!Number.isInteger(t) || t < 1 || t >= sectionsCount) {
-      messages.push(error('TRANSPARENT_SECTION', `Прозрачной может быть секция 1…${sectionsCount - 1}, не ${t} (верхняя наматывается на вал)`));
+      messages.push(error('TRANSPARENT_SECTION', { ru: `Прозрачной может быть секция 1…${sectionsCount - 1}, не ${t} (верхняя наматывается на вал)`, en: `Transparent can be section 1…${sectionsCount - 1}, not ${t} (the top one winds onto the shaft)`, th: `เซกชันใสได้เฉพาะ 1…${sectionsCount - 1} ไม่ใช่ ${t} (เซกชันบนม้วนเข้าเพลา)` }));
     }
   }
 
@@ -115,7 +115,7 @@ export function calcLayout(inp, shaftDia, cat, messages) {
   if (inp.extraWindbars && windows.length) {
     const low = Math.min(...windows.map((w) => w.bottomFromFloor));
     if (low > cur.windowBottomMax) {
-      messages.push(warning('WINDOW_TOO_HIGH', `Низ окна ${low} мм выше ${cur.windowBottomMax} мм от пола`));
+      messages.push(warning('WINDOW_TOO_HIGH', { ru: `Низ окна ${low} мм выше ${cur.windowBottomMax} мм от пола`, en: `Window bottom ${low} mm is higher than ${cur.windowBottomMax} mm from the floor`, th: `ขอบล่างหน้าต่าง ${low} มม. สูงกว่า ${cur.windowBottomMax} มม. จากพื้น` }));
     }
   }
 

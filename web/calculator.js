@@ -6,6 +6,8 @@
 import { calculateHsr, exportAssemblyCsv, ENGINE } from '../products/hsr/index.js';
 import { windCurtain } from '../products/hsr/winding.js';
 import { effectiveFromPitches } from '../products/hsr/pitch.js';
+import { msgText } from '../core/messages.js';
+import { ruleText } from '../products/hsr/spec.js';
 import { FS, fsInit, fsPick, fsReconnect, stGet, readIndex, saveCalc, freezeForm, nowStr } from './storage.js';
 
 const VERSION = '1.0';
@@ -260,11 +262,13 @@ function setManualPitches(pp) {
   change();
 }
 
+const guideName = (g) => (LANG === 'th' ? g.nameTh : g.nameEn) || g.nameEn || g.name;
+
 function renderBlock2() {
   const f = R.calc.frame; const d = ST.doc.options;
   if (!f) return;
   const g = CAT.guides.items.find((x) => x.id === f.guide);
-  setVal('gRail', `${g.name} · ${f.guideSize.w} × ${f.guideSize.d}`);
+  setVal('gRail', `${guideName(g)} · ${f.guideSize.w} × ${f.guideSize.d}`);
   setVal('gLen', f.guideLength);
   setVal('gSide', `${f.sketch.motorSideWidth} / ${f.sketch.nonMotorSideWidth}`);
   const pc = d.photocells || { pairs: 1, levels: [400] };
@@ -326,7 +330,7 @@ function renderStatus() {
   const e = R.calc.errors; const w = R.calc.warnings;
   const sup = ST.doc.options.supply === 'outsourced' ? ['<div class="w">⚑ Supply SDA (bought): calculated as SDA-DS, becomes SDA-DS on Save</div>'] : [];
   $('msgs').innerHTML = (e.length || w.length || sup.length)
-    ? sup.concat(e.map((m) => `<div class="e">✕ ${esc(m.text)}</div>`), w.filter((m) => m.code !== 'CONTROL_SIDE_DEFAULT').map((m) => `<div class="w">⚠ ${esc(m.text)}</div>`)).join('')
+    ? sup.concat(e.map((m) => `<div class="e">✕ ${esc(msgText(m, LANG))}</div>`), w.filter((m) => m.code !== 'CONTROL_SIDE_DEFAULT').map((m) => `<div class="w">⚠ ${esc(msgText(m, LANG))}</div>`)).join('')
     : '<div style="color:var(--c-success)">✓ Calculated · no errors or warnings</div>';
   $('calcSt').textContent = `${R.calc.status === 'ok' ? '●' : '✕'} ${R.calc.status === 'ok' ? 'Calculated' : 'Blocked'} · ${e.length} errors · ${w.length} warnings${ST.dirty ? ' · not saved' : ''}`;
 }
@@ -586,8 +590,8 @@ function renderSpec() {
   const blocked = c.status !== 'ok' || !R.spec;
   const warn = [];
   if (!idOf(d)) warn.push('Order number is required to save');
-  c.errors.forEach((m) => warn.push('✕ ' + m.text));
-  c.warnings.filter((m) => m.code !== 'CONTROL_SIDE_DEFAULT').forEach((m) => warn.push('⚠ ' + m.text));
+  c.errors.forEach((m) => warn.push('✕ ' + msgText(m, LANG)));
+  c.warnings.filter((m) => m.code !== 'CONTROL_SIDE_DEFAULT').forEach((m) => warn.push('⚠ ' + msgText(m, LANG)));
   const lines = editedLines();
   lines.filter((l) => l.missingSku).forEach((l) => warn.push(`⚠ ${l.partId}: no SKU in Zoho`));
   $('specWarn').innerHTML = warn.length ? `<div class="wrbox" style="margin:0 0 4px">${warn.map(esc).join('<br>')}</div>` : '';
@@ -611,7 +615,7 @@ function renderSpec() {
       if (gr !== g) { g = gr; t += `<tr class="grp"><td colspan="8">${esc(gr)}</td></tr>`; }
       const len = lengthOf(l);
       t += `<tr class="${l.edited ? 'ov' : ''}"><td><input class="sku" list="skuList" data-sku="${esc(l.partId)}" value="${esc(l.sku || '')}"></td><td>${esc(l.name || '—')}</td><td class="n">${len ?? '—'}</td>
-        <td class="n"><input class="num" data-qty="${esc(l.partId)}" value="${l.qty}"></td><td class="n">${round3(l.qty * qtyTotal)}</td><td>${esc(l.unit || '')}</td><td>${esc(l.rule || '')}</td>
+        <td class="n"><input class="num" data-qty="${esc(l.partId)}" value="${l.qty}"></td><td class="n">${round3(l.qty * qtyTotal)}</td><td>${esc(l.unit || '')}</td><td>${esc(ruleText(l, LANG) || '')}</td>
         <td class="noprint"><button class="btn btn-sm rm" data-del="${esc(l.partId)}">×</button></td></tr>`;
     }
     t += `</table><div class="addrow edit-only" style="margin-top:8px"><button class="btn btn-sm" data-add="${s.sections[0]}">+ row</button></div>`;
@@ -653,7 +657,7 @@ function sheetGraphic(no) {
   }
   if (no === 2) {
     const pc = d.photocells || { pairs: 1, levels: [400] };
-    return `<div class="kv"><div><span>Rail</span><b>${esc(CAT.guides.items.find((g) => g.id === f.guide).name)} · ${f.guideSize.w} × ${f.guideSize.d}</b></div><div><span>Overall W × H</span><b>${f.sketch.overallWidth} × ${f.overallHeight} mm</b></div><div><span>Photocells</span><b>${pc.pairs} pair${pc.pairs > 1 ? 's' : ''} · ${pc.levels.slice(0, pc.pairs).join(' / ')} mm</b></div></div><div class="dwg">${frontView('frame')}</div>`;
+    return `<div class="kv"><div><span>Rail</span><b>${esc(guideName(CAT.guides.items.find((g) => g.id === f.guide)))} · ${f.guideSize.w} × ${f.guideSize.d}</b></div><div><span>Overall W × H</span><b>${f.sketch.overallWidth} × ${f.overallHeight} mm</b></div><div><span>Photocells</span><b>${pc.pairs} pair${pc.pairs > 1 ? 's' : ''} · ${pc.levels.slice(0, pc.pairs).join(' / ')} mm</b></div></div><div class="dwg">${frontView('frame')}</div>`;
   }
   return `<div class="kv"><div><span>Box · shaft</span><b>${f.sidePlate} ${f.sidePlateSize.h} × ${f.sidePlateSize.d} · φ${f.shaftDiameter}</b></div><div><span>Motor</span><b>${dr.motorSku} · ${dr.powerKw} kW · ${dr.gearbox} ${dr.ratio} · ${dr.driveSide === 'L' ? 'left' : 'right'}</b></div><div><span>Cable</span><b>${dr.cableLength} mm · in kit ${dr.cableIncluded / 1000} m</b></div></div><div class="dwg">${topView()}</div><div class="dwg" style="margin-top:8px"><div style="max-width:340px;margin:0 auto">${boxSection()}</div></div>`;
 }

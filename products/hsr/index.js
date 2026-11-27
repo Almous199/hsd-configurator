@@ -21,7 +21,7 @@ export const ENGINE = 'hsr@0.1.0';
 export function calculateHsr(doc, cat, env = {}) {
   const messages = [];
   if (doc.productType && doc.productType !== 'hsr') {
-    messages.push(error('PRODUCT_TYPE', `Ожидался productType "hsr", получен "${doc.productType}"`));
+    messages.push(error('PRODUCT_TYPE', { ru: `Ожидался productType "hsr", получен "${doc.productType}"`, en: `Expected productType "hsr", got "${doc.productType}"` }));
   }
   const bySku = indexItems(cat.items);
   const inp = normalizeInput(doc, messages);
@@ -35,7 +35,7 @@ export function calculateHsr(doc, cat, env = {}) {
   if (frame && curtain) {
     const dMax = { S: 200, M: 250 }[frame.sidePlate];
     if (dMax && curtain.rollDiameter > dMax) {
-      messages.push(warning('ROLL_TOO_BIG', `Рулон ≈ Ø${curtain.rollDiameter} больше допустимого Ø${dMax} для боковины ${frame.sidePlate}`));
+      messages.push(warning('ROLL_TOO_BIG', { ru: `Рулон ≈ Ø${curtain.rollDiameter} больше допустимого Ø${dMax} для боковины ${frame.sidePlate}`, en: `Roll ≈ Ø${curtain.rollDiameter} is over the allowed Ø${dMax} for end plate ${frame.sidePlate}`, th: `ม้วน ≈ Ø${curtain.rollDiameter} ใหญ่กว่าที่อนุญาต Ø${dMax} สำหรับแผ่นปิดข้าง ${frame.sidePlate}` }));
     }
     frame.rollDiameterMax = dMax;
   }
@@ -75,12 +75,12 @@ function validateAccessories(list, cat, bySku, messages) {
   for (const t of cat.accessories.types) for (const m of t.models) if (m.sku) models.set(m.sku, m);
   for (const a of list) {
     if (!a || !a.sku) {
-      messages.push(error('ACCESSORY_UNAVAILABLE', 'Аксессуар без SKU (например пост на 2 кнопки) пока недоступен'));
+      messages.push(error('ACCESSORY_UNAVAILABLE', { ru: 'Аксессуар без SKU (например пост на 2 кнопки) пока недоступен', en: 'Accessory without SKU (e.g. 2-button station) is not available yet', th: 'อุปกรณ์เสริมที่ไม่มี SKU (เช่น สวิตช์ 2 ปุ่ม) ยังไม่พร้อมใช้งาน' }));
       continue;
     }
-    if (!models.has(a.sku)) messages.push(error('ACCESSORY_UNKNOWN', `Аксессуар ${a.sku} не из списка формы`));
+    if (!models.has(a.sku)) messages.push(error('ACCESSORY_UNKNOWN', { ru: `Аксессуар ${a.sku} не из списка формы`, en: `Accessory ${a.sku} is not in the form list`, th: `อุปกรณ์เสริม ${a.sku} ไม่อยู่ในรายการของฟอร์ม` }));
     else requireItem(bySku, a.sku);
-    if (!(a.qty >= 1)) messages.push(error('ACCESSORY_QTY', `Количество ${a.sku} должно быть ≥ 1`));
+    if (!(a.qty >= 1)) messages.push(error('ACCESSORY_QTY', { ru: `Количество ${a.sku} должно быть ≥ 1`, en: `Quantity of ${a.sku} must be ≥ 1`, th: `จำนวน ${a.sku} ต้อง ≥ 1` }));
   }
 }
 

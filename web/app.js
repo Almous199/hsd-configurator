@@ -2,6 +2,8 @@
 // Расчёт, раскладка, рама, привод и спецификация — только из ядра; форма их не дублирует.
 // В сборке dist/ каталоги встроены в window.__CATALOGS__, в разработке читаются из ../catalogs/hsr.
 import { calculateHsr, exportAssemblyCsv, ENGINE } from '../products/hsr/index.js';
+import { msgText } from '../core/messages.js';
+import { ruleText } from '../products/hsr/spec.js';
 
 const CATALOG_FILES = ['items', 'guides', 'profiles', 'header', 'drives', 'space', 'frame-materials',
   'layouts', 'curtain', 'assemblies', 'accessories'];
@@ -351,9 +353,9 @@ function renderSheetText(calc) {
 function renderMessages(calc) {
   const warn = $('warn'); const notes = $('notes');
   warn.style.display = calc.errors.length ? 'block' : 'none';
-  warn.innerHTML = calc.errors.map((m) => esc(m.code === 'NOT_AVAILABLE' ? T('warn')(S.W, S.H, (S.W * S.H / 1e6).toFixed(1)) : m.text)).join('<br>');
+  warn.innerHTML = calc.errors.map((m) => esc(m.code === 'NOT_AVAILABLE' ? T('warn')(S.W, S.H, (S.W * S.H / 1e6).toFixed(1)) : msgText(m, LANG))).join('<br>');
   notes.style.display = calc.warnings.length ? 'block' : 'none';
-  notes.innerHTML = `<b>${T('notes')}</b><ul>${calc.warnings.map((m) => `<li>${esc(m.text)}</li>`).join('')}</ul>`;
+  notes.innerHTML = `<b>${T('notes')}</b><ul>${calc.warnings.map((m) => `<li>${esc(msgText(m, LANG))}</li>`).join('')}</ul>`;
 }
 
 function renderSpec() {
@@ -376,7 +378,7 @@ function renderSpec() {
     const cls = l.missingSku ? 'miss' : (l.pendingImport || l.provisional ? 'pend' : '');
     const total = +(l.qty * S.qty).toFixed(4);
     return `<tr class="${cls}"><td>${secName[l.section] || l.section}</td><td>${esc(l.sku || '— no SKU —')}</td><td>${esc(l.name || l.partId)}</td>
-      <td class="n">${l.qty}</td><td>${l.unit || ''}</td><td class="n">${total}</td><td class="hint">${esc(l.rule || '')}${l.pendingImport ? ' · not in Zoho yet' : ''}${l.provisional ? ' · not confirmed' : ''}</td></tr>`;
+      <td class="n">${l.qty}</td><td>${l.unit || ''}</td><td class="n">${total}</td><td class="hint">${esc(ruleText(l, LANG) || '')}${l.pendingImport ? ' · not in Zoho yet' : ''}${l.provisional ? ' · not confirmed' : ''}</td></tr>`;
   }).join('');
   card.style.opacity = 1;
 }
