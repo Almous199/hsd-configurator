@@ -1,4 +1,5 @@
-// Собирает страницы в одиночные HTML-файлы: dist/sda-order-form.html (форма заказа) и dist/sda-calculator.html (калькулятор).
+// Собирает страницы в одиночные HTML-файлы: dist/forms.html (справочник форм заказа), dist/sda-order-form.html (форма заказа)
+// и dist/sda-calculator.html (калькулятор).
 // Модули ядра и формы встраиваются как текст и подключаются через blob:-URL (порядок — от листьев к форме),
 // каталоги встраиваются в window.__CATALOGS__. Файл открывается двойным щелчком, без сервера и интернета.
 // Запуск: npm run build [папка вывода, по умолчанию dist/] (dist/ лежит в репозитории, чтобы файл можно было скачать с GitHub; тест сверяет его со свежей сборкой)
@@ -18,6 +19,7 @@ const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const PAGES = [
   { html: 'web/index.html', entry: 'web/app.js', out: 'sda-order-form.html' },
   { html: 'web/calculator.html', entry: 'web/calculator.js', out: 'sda-calculator.html' },
+  { html: 'web/forms.html', entry: 'web/forms.js', out: 'forms.html' },
 ];
 
 function build(page, outDir) {

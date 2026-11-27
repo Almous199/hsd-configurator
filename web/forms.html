@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order forms</title>
+<!-- Справочник форм заказа (менеджер). Схема Alex 25.11: единый справочник для SDA, SDA-DS, ISD01, RSD02 (+ будущие);
+     Create new → диалог выбора изделия → форма этого изделия. Формы лежат в общей рабочей папке Door calculation tool:
+     forms/index.json + forms/<id>.json. Форма заморожена, если в calcs/index.json есть спецификация с тем же номером.
+     Стиль — секционный v3.49 / specs.html (00-architecture/ui-style-proposal.md). Себестоимости и состава здесь нет. -->
+<style>
+:root{
+  --c-bg:#f5f4f0;--c-surf:#fff;--c-surf2:#faf9f6;--c-border:rgba(0,0,0,.1);--c-border2:rgba(0,0,0,.18);
+  --c-text:#1a1a18;--c-muted:#6b6b67;--c-accent:#185FA5;--c-accent-bg:#e6f0fa;
+  --c-success:#2e7d32;--c-success-bg:#e8f3e8;--c-warn:#8a5a00;--c-warn-bg:#fff4dc;--c-danger:#b3261e;--c-danger-bg:#fdecea;
+  --r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI","Leelawadee UI","Noto Sans Thai",Tahoma,Arial,sans-serif;font-size:14px;line-height:1.45;background:var(--c-bg);color:var(--c-text)}
+button,select,input{font:inherit;color:inherit}
+html[lang=th] .tw th{text-transform:none;letter-spacing:0}
+.appbar{display:flex;align-items:center;gap:14px;background:var(--c-surf);border-bottom:.5px solid var(--c-border);padding:10px 20px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
+.appbar .brand{font-weight:600;font-size:15px}
+.ver{background:var(--c-accent-bg);color:var(--c-accent);font-size:11px;font-weight:600;border-radius:20px;padding:2px 10px}
+.nav-tab{border:0;background:none;padding:6px 14px;border-radius:var(--r);color:var(--c-muted);cursor:pointer;text-decoration:none;font-size:14px}
+.nav-tab.on{background:var(--c-accent-bg);color:var(--c-accent)}
+.sp{flex:1}
+.lang{display:flex;border:.5px solid var(--c-border2);border-radius:20px;padding:2px}
+.lang button{border:0;background:none;padding:2px 12px;border-radius:16px;font-size:13px;color:var(--c-muted);cursor:pointer}
+.lang button.on{background:var(--c-accent-bg);color:var(--c-accent)}
+.wrap{max-width:1400px;margin:0 auto;padding:20px}
+.sec-head h1{font-size:20px;font-weight:500}
+.sec-head p{color:var(--c-muted);font-size:13.5px;margin:2px 0 16px}
+.infobox{background:#eceae3;border-radius:var(--r);padding:10px 14px;font-size:13px;color:#444;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.infobox.warn{background:var(--c-warn-bg);color:var(--c-warn)}
+.infobox.err{background:var(--c-danger-bg);color:var(--c-danger)}
+.tbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.tbar input[type=search]{width:240px;border:.5px solid var(--c-border2);border-radius:var(--r);padding:6px 10px;background:var(--c-surf)}
+.cnt{font-size:13px;color:var(--c-muted)}.cnt b{color:var(--c-text)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:.5px solid var(--c-border2);border-radius:var(--r);padding:5px 12px;background:var(--c-surf);cursor:pointer;font-size:13px;white-space:nowrap;text-decoration:none;color:inherit}
+.btn:hover{background:#f0efe8}
+.btn:disabled{opacity:.45;cursor:default}
+.btn-primary{background:var(--c-accent);color:#fff;border-color:var(--c-accent)}
+.btn-primary:hover{background:#13497f}
+.btn-ok{background:var(--c-success-bg);color:var(--c-success);border-color:#b7d8b8}
+.btn-sm{padding:2px 9px;font-size:12px}
+.seg{display:inline-flex;border:.5px solid var(--c-border2);border-radius:var(--r);overflow:hidden}
+.seg button{border:0;background:var(--c-surf);padding:5px 12px;font-size:13px;cursor:pointer}
+.seg button+button{border-left:.5px solid var(--c-border2)}
+.seg button.on{background:var(--c-accent-bg);color:var(--c-accent);font-weight:600}
+.tcard{background:var(--c-surf);border:.5px solid var(--c-border);border-radius:var(--rl);overflow:auto}
+.tw{width:100%;border-collapse:collapse;font-size:13.5px}
+.tw th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);font-weight:500;text-align:left;padding:10px 12px;background:#f2f1ec;border-bottom:.5px solid var(--c-border2);white-space:nowrap}
+.tw td{padding:9px 12px;border-bottom:.5px solid var(--c-border);vertical-align:middle}
+.tw th.n,.tw td.n{text-align:right;font-variant-numeric:tabular-nums}
+.tw tbody tr{cursor:pointer}
+.tw tbody tr:hover td{background:#f7f6f1}
+.tw tbody tr:last-child td{border-bottom:0}
+.tw td.empty{text-align:center;color:var(--c-muted);padding:26px;cursor:default}
+.tw .id{font-weight:600}
+.tw .dt{color:var(--c-muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.st{font-size:12px;border-radius:20px;padding:1px 10px;white-space:nowrap}
+.st.draft{background:var(--c-warn-bg);color:var(--c-warn)}
+.st.frozen{background:var(--c-accent-bg);color:var(--c-accent)}
+.prod{font-size:12px;border-radius:6px;padding:1px 7px;background:#eceae3;color:#444;white-space:nowrap}
+.rm{border:0;background:none;color:var(--c-muted);cursor:pointer;font-size:16px;padding:0 6px;border-radius:6px}
+.rm:hover{background:var(--c-danger-bg);color:var(--c-danger)}
+a.spec{color:var(--c-accent);text-decoration:none}a.spec:hover{text-decoration:underline}
+/* диалог выбора изделия */
+.modal{position:fixed;inset:0;background:rgba(20,20,18,.38);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:8vh 16px 16px}
+.modal.on{display:flex}
+.dlg{background:var(--c-surf);border-radius:var(--rl);box-shadow:0 12px 40px rgba(0,0,0,.25);width:100%;max-width:640px;padding:20px 22px}
+.dlg h2{font-size:17px;font-weight:600}
+.dlg .sub{color:var(--c-muted);font-size:13px;margin:2px 0 14px}
+.grp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin:12px 0 6px}
+html[lang=th] .grp{text-transform:none;letter-spacing:0}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.pgrid{grid-template-columns:1fr}}
+.pcard{display:block;text-align:left;border:.5px solid var(--c-border2);border-radius:var(--r);padding:12px 14px;background:var(--c-surf);cursor:pointer}
+.pcard:hover:not(:disabled){border-color:var(--c-accent);background:var(--c-accent-bg)}
+.pcard b{font-size:15px;display:block}
+.pcard span{font-size:12.5px;color:var(--c-muted);display:block;margin-top:2px}
+.pcard:disabled{cursor:default;opacity:.5;background:var(--c-surf2)}
+.pcard em{font-style:normal;font-size:11px;color:var(--c-muted);border:.5px solid var(--c-border2);border-radius:20px;padding:0 8px;margin-left:6px;font-weight:400}
+.dlg .foot{display:flex;justify-content:flex-end;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="appbar">
+  <span class="brand">DOORHAN SIAM</span><span class="ver" id="ver"></span>
+  <a class="nav-tab on" href="#" data-i="forms">Order forms</a>
+  <a class="nav-tab" id="lnkSpecs" href="#" data-i="specs">Specifications</a>
+  <span class="sp"></span>
+  <button class="btn btn-sm" id="fsBtn"></button>
+  <div class="lang"><button data-lang="en">EN</button><button data-lang="th">TH</button></div>
+</div>
+
+<div class="wrap">
+  <div class="sec-head">
+    <h1 data-i="title">Order forms</h1>
+    <p data-i="sub">Orders filled in by managers with the approval sketch · click a row to open the form</p>
+  </div>
+  <div id="info" class="infobox" hidden></div>
+  <div class="tbar">
+    <input type="search" id="q" data-ph="search" placeholder="Search order / customer">
+    <button class="btn btn-primary" id="btnNew" data-i="new">Create new</button>
+    <div class="seg" id="flt">
+      <button data-f="all" class="on" data-i="fAll">All</button><button data-f="draft" data-i="fDraft">Drafts</button><button data-f="frozen" data-i="fFrozen">Frozen</button>
+    </div>
+    <button class="btn" id="btnReload" title="Reload">⟳</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div class="tcard">
+    <table class="tw">
+      <thead><tr>
+        <th data-i="hCreated">Created</th><th data-i="hOrder">Order / pos.</th><th data-i="hCust">Customer</th><th data-i="hProd">Product</th>
+        <th class="n" data-i="hSize">W × H, mm</th><th class="n" data-i="hQty">Qty</th><th data-i="hStatus">Status</th><th data-i="hSpec">Specification</th>
+        <th data-i="hEdited">Last edit</th><th></th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal" id="dlg">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h2 id="dlgT" data-i="dlgTitle">New order form</h2>
+    <div class="sub" data-i="dlgSub">Choose the product. The order number (DSO) is entered in the form.</div>
+    <div id="plist"></div>
+    <div class="foot"><button class="btn" id="dlgClose" data-i="cancel">Cancel</button></div>
+  </div>
+</div>
+
+<script type="module" src="./forms.js"></script>
+</body>
+</html>

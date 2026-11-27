@@ -113,3 +113,45 @@ export async function freezeForm(id) {
   }
   return true;
 }
+
+// ───────────── Справочник форм заказа (forms/) ─────────────
+// Строка forms/index.json → forms[]: id, order, pos, customer, category, product, W, H, qty, created, edited, status.
+// Статус «заморожена» в справочнике считается по наличию спецификации с тем же id в calcs/index.json (Alex 25.11:
+// разморозить = удалить спецификацию); поле status в файле — только подсказка для других программ.
+
+export async function stDel(path) {
+  if (FS.state === 'ok') {
+    try { const { d, name } = await dirOf(path, false); await d.removeEntry(name); } catch (e) {
+      if (!(e && e.name === 'NotFoundError')) throw e;
+    }
+    return;
+  }
+  try { localStorage.removeItem(LS_PREFIX + path); } catch (e) { /* */ }
+}
+
+export async function readForms() {
+  const ix = await stGet('forms/index.json');
+  return { head: ix || { app: 'hsd-configurator', kind: 'forms-index' }, rows: ix && Array.isArray(ix.forms) ? ix.forms : [] };
+}
+
+/** id спецификаций из calcs/index.json — по ним форма считается замороженной. */
+export async function specIds() {
+  const ix = await readIndex();
+  return new Set(ix.rows.map((r) => r.id));
+}
+
+/** Записать форму и свою строку индекса форм (индекс перечитывается перед записью). */
+export async function saveForm(rec, row) {
+  await stPut(`forms/${rec.id}.json`, rec);
+  const ix = await readForms();
+  const rows = ix.rows.filter((r) => r.id !== row.id);
+  rows.push(row);
+  await stPut('forms/index.json', { ...ix.head, kind: 'forms-index', updated: nowStr(), forms: rows });
+}
+
+/** Удалить форму (любую, в т.ч. замороженную — Alex 26.11; спецификация не трогается). */
+export async function deleteForm(id) {
+  await stDel(`forms/${id}.json`);
+  const ix = await readForms();
+  await stPut('forms/index.json', { ...ix.head, kind: 'forms-index', updated: nowStr(), forms: ix.rows.filter((r) => r.id !== id) });
+}

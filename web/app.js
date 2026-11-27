@@ -1,9 +1,13 @@
 // Форма заказа SDA на ядре расчёта (products/hsr). Макет: 05-order-form/order-form-mockup.html (тред 05).
 // Расчёт, раскладка, рама, привод и спецификация — только из ядра; форма их не дублирует.
 // В сборке dist/ каталоги встроены в window.__CATALOGS__, в разработке читаются из ../catalogs/hsr.
-import { calculateHsr, exportAssemblyCsv, ENGINE } from '../products/hsr/index.js';
+// Сохранение — в справочник форм заказа (forms.html): общая папка Door calculation tool, forms/<id>.json + forms/index.json.
+// Адреса: ?form=<id> открыть сохранённую · ?new=1&product=SDA|SDA-DS новая · lang=en|th.
+// Форма заморожена (только просмотр), если есть спецификация с тем же номером (calcs/index.json); разморозить = удалить спецификацию.
+// Себестоимости и состава (спецификации, CSV Zoho) здесь нет: это экран менеджера, спецификация — в калькуляторе SDA.
+import { calculateHsr, ENGINE } from '../products/hsr/index.js';
+import { FS, fsInit, fsPick, fsReconnect, stGet, readForms, specIds, saveForm, deleteForm, nowStr } from './storage.js';
 import { msgText } from '../core/messages.js';
-import { ruleText } from '../products/hsr/spec.js';
 
 const CATALOG_FILES = ['items', 'guides', 'profiles', 'header', 'drives', 'space', 'frame-materials',
   'layouts', 'curtain', 'assemblies', 'accessories'];
@@ -44,14 +48,15 @@ for (const t of CAT.accessories.types) {
 ACC_MODELS.other = [{ sku: null, available: true, label: '', short: '' }];
 
 const S = {
-  id: 'DSO-26659-2', revision: 1, W: 2000, H: 2600, qty: 5, color: 0, fabric: 'pvc', extra: 0, layout: null,
+  id: '', revision: 1, W: 2000, H: 2600, qty: 1, color: 0, fabric: 'pvc', extra: 0, layout: null,
   visionAuto: true, vision: new Set([2]), motor: 'L', ctrl: 'L', ctrlH: 1200,
-  acc: [{ t: 'radar', sku: 'Orca', q: 1 }],
-  guide: 'alu', supply: 'own',
+  acc: [],
+  guide: 'alu', supply: 'outsourced',
   boxH: 270, boxD: 235, coverH: 370, guideW: 130, guideD: 90, sideMotor: 350, sideFree: 180,
   overrides: [], loadedOrder: null,
+  formId: null, created: null, frozen: false, dirty: false,
 };
-let RESULT = null; let DOC = null;
+let RESULT = null; let DOC = null; let LOADING = true;
 const I18N = {
  en:{ title:'SDA · new order', sub:'Mockup of the manager form. Customer data is filled automatically on the real server.', order:'Order', so:'Sales order number', load:'Load from Zoho',
   soHint:'Customer and addresses are pulled from the SO', cust:'Customer', addr:'Delivery address', addrHint:'If the SO has no shipping address, the billing address is used',
@@ -94,15 +99,49 @@ Object.assign(I18N.th, {
   perDoor: 'ต่อประตู', unitH: 'หน่วย', total: 'รวม', ruleH: 'กฎ', outsourced: 'สั่งจากภายนอก (SDA): ไม่มีการประกอบใน Zoho',
   notes: 'หมายเหตุจากการคำนวณ', sec: { curtain: 'ม่าน', header: 'กล่องและเพลา', guides: 'ราง', drive: 'มอเตอร์' },
 });
+// Справочник форм и сохранение (тред «Сделать справочник форм заказа», 26.11)
+Object.assign(I18N.en, {
+  ownHint: 'Unticked: SDA ordered outside', savedBtn: 'Saved ✓', saving: 'Saving…', saveErr: (m) => `Not saved: ${m}`, forms: '← Order forms', newOrder: 'new order', open: 'Open order JSON…', dl: 'Download JSON', save: 'Save',
+  saveHint: '“Save” keeps the form in Order forms as a draft; you can change and save it again until the engineer creates the specification with this number. Below is the approval sheet that the customer signs (always EN + TH).',
+  whyFrozen: 'frozen: the specification exists', whyBlocked: 'fix the size to save', whyNoId: 'enter the sales order number (DSO-…) to save',
+  frozen: (id, href) => `🔒 Frozen: the specification <a href="${href}">${id}</a> has been created from this form, so the form is read-only. To change the order, the engineer deletes the specification in Specifications; then the form becomes a draft again.`,
+  saved: (id, where) => `Saved ${id} to Order forms${where}.`, inFolder: (n) => ` (folder ${n})`,
+  noFolder: ' — this browser only: choose the working folder so that the engineer sees the form',
+  folderNone: 'Working folder is not selected: the form is saved in this browser only. Choose «Door calculation tool» so that the engineer sees it in Specifications.',
+  folderRe: (n) => `The browser needs permission for the working folder «${n}».`, allow: 'Allow',
+  notFound: (id) => `Order form ${id} not found in the working folder.`,
+  takenSpec: (id) => `Specification ${id} already exists, so this number is taken. Check the order number.`,
+  takenForm: (id) => `Order form ${id} already exists. Open it from Order forms or change the number.`,
+  renamed: (a, b) => `The number changed from ${a} to ${b}. Save the form as ${b} and remove ${a}?`,
+  fsOk: (n) => `Folder: ${n} ✓`, fsRe: (n) => `Reconnect folder (${n})`, fsNo: 'Choose working folder', fsUns: 'Browser: no folder access',
+});
+Object.assign(I18N.th, {
+  ownHint: 'ไม่ติ๊ก: SDA สั่งจากภายนอก', savedBtn: 'บันทึกแล้ว ✓', saving: 'กำลังบันทึก…', saveErr: (m) => `บันทึกไม่สำเร็จ: ${m}`, forms: '← ฟอร์มคำสั่งซื้อ', newOrder: 'คำสั่งซื้อใหม่', open: 'เปิด JSON คำสั่งซื้อ…', dl: 'ดาวน์โหลด JSON', save: 'บันทึก',
+  saveHint: '“บันทึก” จะเก็บฟอร์มเป็นฉบับร่างในรายการฟอร์มคำสั่งซื้อ แก้ไขและบันทึกซ้ำได้จนกว่าวิศวกรจะสร้างสเปคเลขเดียวกัน ด้านล่างคือแบบอนุมัติที่ลูกค้าลงนาม (สองภาษาเสมอ)',
+  whyFrozen: 'ล็อกแล้ว: มีสเปคแล้ว', whyBlocked: 'แก้ขนาดก่อนบันทึก', whyNoId: 'ใส่เลขที่ใบสั่งขาย (DSO-…) เพื่อบันทึก',
+  frozen: (id, href) => `🔒 ล็อกแล้ว: สร้างสเปค <a href="${href}">${id}</a> จากฟอร์มนี้แล้ว ฟอร์มจึงดูได้อย่างเดียว หากต้องการแก้คำสั่งซื้อ วิศวกรต้องลบสเปคในรายการสเปค แล้วฟอร์มจะกลับเป็นฉบับร่าง`,
+  saved: (id, where) => `บันทึก ${id} ในรายการฟอร์มคำสั่งซื้อแล้ว${where}`, inFolder: (n) => ` (โฟลเดอร์ ${n})`,
+  noFolder: ' — เฉพาะเบราว์เซอร์นี้: เลือกโฟลเดอร์ทำงานเพื่อให้วิศวกรเห็นฟอร์ม',
+  folderNone: 'ยังไม่ได้เลือกโฟลเดอร์ทำงาน: ฟอร์มจะถูกบันทึกในเบราว์เซอร์นี้เท่านั้น เลือก «Door calculation tool» เพื่อให้วิศวกรเห็นในรายการสเปค',
+  folderRe: (n) => `เบราว์เซอร์ต้องการสิทธิ์เข้าถึงโฟลเดอร์ «${n}»`, allow: 'อนุญาต',
+  notFound: (id) => `ไม่พบฟอร์มคำสั่งซื้อ ${id} ในโฟลเดอร์ทำงาน`,
+  takenSpec: (id) => `มีสเปค ${id} แล้ว เลขนี้ถูกใช้แล้ว กรุณาตรวจสอบเลขที่คำสั่งซื้อ`,
+  takenForm: (id) => `มีฟอร์มคำสั่งซื้อ ${id} แล้ว เปิดจากรายการฟอร์ม หรือเปลี่ยนเลข`,
+  renamed: (a, b) => `เลขเปลี่ยนจาก ${a} เป็น ${b} บันทึกฟอร์มเป็น ${b} และลบ ${a}?`,
+  fsOk: (n) => `โฟลเดอร์: ${n} ✓`, fsRe: (n) => `เชื่อมต่อโฟลเดอร์ใหม่ (${n})`, fsNo: 'เลือกโฟลเดอร์ทำงาน', fsUns: 'เบราว์เซอร์: ไม่รองรับโฟลเดอร์',
+});
 let LANG = 'en';
-try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('sdaLang') || 'en'; } catch (e) { /* без хранилища */ }
+try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('dh.lang') || 'en'; } catch (e) { /* без хранилища */ }
+if (!I18N[LANG]) LANG = 'en';
 const T = (k) => (I18N[LANG] || I18N.en)[k];
 function applyLang() {
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i]').forEach((e) => { const v = T(e.dataset.i); if (typeof v === 'string') e.textContent = v; });
   document.querySelectorAll('.langsw button').forEach((b) => b.classList.toggle('on', b.dataset.lang === LANG));
 }
-document.querySelectorAll('.langsw button').forEach((b) => b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem('sdaLang', LANG); } catch (e) { /* */ } applyLang(); update(); });
+document.querySelectorAll('.langsw button').forEach((b) => b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem('dh.lang', LANG); } catch (e) { /* */ }
+  const u = new URL(location.href); u.searchParams.set('lang', LANG); history.replaceState(null, '', u);
+  applyLang(); fsUi(); update(); if (S.frozen) setFrozen(true); });
 
 const NS='http://www.w3.org/2000/svg';
 function el(tag,a,p){ const e=document.createElementNS(NS,tag); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e; }
@@ -110,26 +149,30 @@ function txt(p,x,y,s,a={}){ const t=el('text',{x,y,...a},p); t.textContent=s; re
 const DIM='#b0127a', LVL='#e8963a';
 function hdim(p,x1,x2,y,label,e0){ const g=el('g',{stroke:DIM,'stroke-width':7,fill:'none'},p);
   if(e0!==undefined){ const d=y>e0?40:-40; el('line',{x1,y1:e0,x2:x1,y2:y+d},g); el('line',{x1:x2,y1:e0,x2,y2:y+d},g); }
-  el('line',{x1,y1:y,x2,y2:y,'marker-start':'url(#ar)','marker-end':'url(#ar)'},g);
+  el('line',{x1,y1:y,x2,y2:y,'marker-start':`url(#${DP}ar)`,'marker-end':`url(#${DP}ar)`},g);
   txt(p,(x1+x2)/2,y-25,label,{'text-anchor':'middle',fill:DIM,'font-size':105}); }
 function vdim(p,x,y1,y2,label,e0){ const g=el('g',{stroke:DIM,'stroke-width':7,fill:'none'},p);
   if(e0!==undefined){ const d=x>e0?40:-40; el('line',{x1:e0,y1,x2:x+d,y2:y1},g); el('line',{x1:e0,y1:y2,x2:x+d,y2},g); }
-  el('line',{x1:x,y1,x2:x,y2,'marker-start':'url(#ar)','marker-end':'url(#ar)'},g);
+  el('line',{x1:x,y1,x2:x,y2,'marker-start':`url(#${DP}ar)`,'marker-end':`url(#${DP}ar)`},g);
   const cy=(y1+y2)/2; txt(p,x-25,cy,label,{'text-anchor':'middle',fill:DIM,'font-size':105,transform:`rotate(-90 ${x-25} ${cy})`}); }
 
+// id градиентов уникальны для каждого svg: в печати скрытый эскиз формы (display:none) не отдаёт свои градиенты бланку,
+// и окно с рамой печатались без заливки (Alex 27.11, ч/б бланк).
+let DP = '';
 function defs(svg, pvc){
+  DP = (svg.id || 'svg') + '-';
   const d=el('defs',{},svg);
-  d.innerHTML=`<marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="60" markerHeight="60" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 2.5 L10 5 L0 7.5z" fill="${DIM}"/></marker>
-  <linearGradient id="alu" x1="0" x2="1"><stop offset="0" stop-color="#aeb5bd"/><stop offset=".35" stop-color="#f3f5f7"/><stop offset=".7" stop-color="#c3c9cf"/><stop offset="1" stop-color="#8f979f"/></linearGradient>
-  <linearGradient id="aluh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f3f5"/><stop offset=".5" stop-color="#c0c6cc"/><stop offset="1" stop-color="#8e969e"/></linearGradient>
-  <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dd"/><stop offset="1" stop-color="#aeb5bc"/></linearGradient>
-  <linearGradient id="hoodv" x1="0" x2="1"><stop offset="0" stop-color="#b9c0c7"/><stop offset=".4" stop-color="#e9ecef"/><stop offset="1" stop-color="#aab1b8"/></linearGradient>
-  <linearGradient id="sheen" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".16"/><stop offset=".55" stop-color="#fff" stop-opacity=".02"/><stop offset=".8" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>
-  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef7fd"/><stop offset=".5" stop-color="#d3e9f6"/><stop offset="1" stop-color="#b9d9ec"/></linearGradient>
-  <linearGradient id="ss" x1="0" x2="1"><stop offset="0" stop-color="#9da6ae"/><stop offset=".25" stop-color="#e8edf1"/><stop offset=".5" stop-color="#b4bcc4"/><stop offset=".75" stop-color="#f4f7f9"/><stop offset="1" stop-color="#8d969f"/></linearGradient>
-  <pattern id="floor" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="60" stroke="#8a929b" stroke-width="7"/></pattern>
-  <pattern id="mesh" width="70" height="70" patternUnits="userSpaceOnUse"><path d="M0 0H70M0 0V70" stroke="#b8961c" stroke-opacity=".55" stroke-width="5" fill="none"/></pattern>
-  <pattern id="sand" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="3.5" fill="#9aa3ad"/><circle cx="30" cy="30" r="3.5" fill="#9aa3ad"/></pattern>`;
+  d.innerHTML=`<marker id="${DP}ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="60" markerHeight="60" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 2.5 L10 5 L0 7.5z" fill="${DIM}"/></marker>
+  <linearGradient id="${DP}alu" x1="0" x2="1"><stop offset="0" stop-color="#aeb5bd"/><stop offset=".35" stop-color="#f3f5f7"/><stop offset=".7" stop-color="#c3c9cf"/><stop offset="1" stop-color="#8f979f"/></linearGradient>
+  <linearGradient id="${DP}aluh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f3f5"/><stop offset=".5" stop-color="#c0c6cc"/><stop offset="1" stop-color="#8e969e"/></linearGradient>
+  <linearGradient id="${DP}hood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#d3d8dd"/><stop offset="1" stop-color="#aeb5bc"/></linearGradient>
+  <linearGradient id="${DP}hoodv" x1="0" x2="1"><stop offset="0" stop-color="#b9c0c7"/><stop offset=".4" stop-color="#e9ecef"/><stop offset="1" stop-color="#aab1b8"/></linearGradient>
+  <linearGradient id="${DP}sheen" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".16"/><stop offset=".55" stop-color="#fff" stop-opacity=".02"/><stop offset=".8" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>
+  <linearGradient id="${DP}glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef7fd"/><stop offset=".5" stop-color="#d3e9f6"/><stop offset="1" stop-color="#b9d9ec"/></linearGradient>
+  <linearGradient id="${DP}ss" x1="0" x2="1"><stop offset="0" stop-color="#9da6ae"/><stop offset=".25" stop-color="#e8edf1"/><stop offset=".5" stop-color="#b4bcc4"/><stop offset=".75" stop-color="#f4f7f9"/><stop offset="1" stop-color="#8d969f"/></linearGradient>
+  <pattern id="${DP}floor" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="60" stroke="#8a929b" stroke-width="7"/></pattern>
+  <pattern id="${DP}mesh" width="70" height="70" patternUnits="userSpaceOnUse"><path d="M0 0H70M0 0V70" stroke="#b8961c" stroke-opacity=".55" stroke-width="5" fill="none"/></pattern>
+  <pattern id="${DP}sand" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="3.5" fill="#9aa3ad"/><circle cx="30" cy="30" r="3.5" fill="#9aa3ad"/></pattern>`;
 }
 
 function checkbox(p,x,y,on,cb,label,anchor,lc){
@@ -172,36 +215,39 @@ function draw(svg, mode){
     });
   }
   // floor
-  el('rect',{x:xL-300,y:0,width:(xR-xL)+600,height:70,fill:'url(#floor)'},g);
+  el('rect',{x:xL-300,y:0,width:(xR-xL)+600,height:70,fill:`url(#${DP}floor)`},g);
   el('line',{x1:xL-300,y1:0,x2:xR+300,y2:0,stroke:'#1b1f24','stroke-width':14},g);
   // curtain
   el('rect',{x:a,y:-GT,width:W,height:GT,fill:pvc},g);
-  if(S.fabric==='mesh') el('rect',{x:a,y:-GT,width:W,height:GT,fill:'url(#mesh)'},g); // сетка в прозрачном жёлтом ПВХ
-  el('rect',{x:a,y:-GT,width:W,height:GT,fill:'url(#sheen)'},g);
+  if(S.fabric==='mesh') el('rect',{x:a,y:-GT,width:W,height:GT,fill:`url(#${DP}mesh)`},g); // сетка в прозрачном жёлтом ПВХ
+  el('rect',{x:a,y:-GT,width:W,height:GT,fill:`url(#${DP}sheen)`},g);
   // transparent sections (whole section between profiles)
   for(let i=1;i<=n;i++){ if(!S.vision.has(i)) continue;
-    const y0=yb[i-1]+(i>1?20:0), y1=yb[i]-(i<n?20:0), m=30, b=45;
-    const px=a+b, pw=W-2*b, py=-(y1-m), ph=(y1-y0)-2*m - (i===1?60:0);
-    el('rect',{x:px,y:py,width:pw,height:ph,rx:8,fill:'url(#glass)',stroke:'#7fa9c4','stroke-width':6},g);
+    // окно на всё поле секции: по ширине между направляющими и по высоте между профилями, без полосок ткани (Alex 27.11)
+    const y0=yb[i-1]+(i>1?20:0), y1=yb[i]-(i<n?20:0), m=0;
+    const px=a, pw=W, py=-(y1-m), ph=(y1-y0)-2*m - (i===1?60:0);
+    el('rect',{x:px,y:py,width:pw,height:ph,fill:`url(#${DP}glass)`},g);
+    el('line',{x1:px,y1:py,x2:px+pw,y2:py,stroke:'#7fa9c4','stroke-width':6},g);
+    el('line',{x1:px,y1:py+ph,x2:px+pw,y2:py+ph,stroke:'#7fa9c4','stroke-width':6},g);
     const k=Math.max(2,Math.round(pw/500));
     for(let j=0;j<k;j++){ const rx=px+pw*(j+0.55)/k;
       el('line',{x1:rx-60,y1:py+ph*0.42,x2:rx+80,y2:py+ph*0.28,stroke:'#fff','stroke-width':12,opacity:.9},g);
       el('line',{x1:rx-90,y1:py+ph*0.66,x2:rx+100,y2:py+ph*0.48,stroke:'#fff','stroke-width':9,opacity:.8},g); }
   }
   // wind struts between sections
-  for(let i=1;i<n;i++){ const y=-(yb[i]-20); el('rect',{x:a-guideW+20,y:y-22,width:W+2*guideW-40,height:44,fill:'url(#aluh)',stroke:'#6f7780','stroke-width':4},g); }
+  for(let i=1;i<n;i++){ const y=-(yb[i]-20); el('rect',{x:a-guideW+20,y:y-22,width:W+2*guideW-40,height:44,fill:`url(#${DP}aluh)`,stroke:'#6f7780','stroke-width':4},g); }
   // bottom profile + seal
-  el('rect',{x:a,y:-85,width:W,height:60,fill:'url(#aluh)',stroke:'#6f7780','stroke-width':4},g);
+  el('rect',{x:a,y:-85,width:W,height:60,fill:`url(#${DP}aluh)`,stroke:'#6f7780','stroke-width':4},g);
   el('rect',{x:a+10,y:-25,width:W-20,height:25,fill:'#22262b'},g);
   // guides with photocells
   [a-guideW, a+W].forEach(gx=>{
-    el('rect',{x:gx,y:-GT,width:guideW,height:GT,fill:S.guide==='ss'?'url(#ss)':'url(#alu)',stroke:'#59616a','stroke-width':6},g);
+    el('rect',{x:gx,y:-GT,width:guideW,height:GT,fill:S.guide==='ss'?`url(#${DP}ss)`:`url(#${DP}alu)`,stroke:'#59616a','stroke-width':6},g);
     el('line',{x1:gx+guideW/2,y1:-GT+40,x2:gx+guideW/2,y2:-10,stroke:'#7d858d','stroke-width':5},g);
     el('rect',{x:gx+25,y:-380,width:70,height:90,rx:10,fill:'#1b1f24'},g); el('circle',{cx:gx+60,cy:-335,r:16,fill:'#e33'},g);
   });
   // top box
   const ext=(S.guide==='ss'?184:230)/2, bx0=a-ext, bx1=a+W+ext;   // box length W+230 alu / W+184 ss
-  el('rect',{x:bx0,y:top,width:bx1-bx0,height:boxH,fill:'url(#hood)',stroke:'#59616a','stroke-width':8},g);
+  el('rect',{x:bx0,y:top,width:bx1-bx0,height:boxH,fill:`url(#${DP}hood)`,stroke:'#59616a','stroke-width':8},g);
   el('line',{x1:bx0,y1:top+boxH*0.72,x2:bx1,y2:top+boxH*0.72,stroke:'#9aa2aa','stroke-width':6},g);
   for(let x=bx0+120;x<bx1-60;x+=600) el('circle',{cx:x,cy:top+60,r:11,fill:'#7d858d'},g);
   txt(g,(bx0+bx1)/2,top+boxH*0.47,'DOORHAN SIAM',{'text-anchor':'middle','font-size':Math.min(110,W/18),'font-weight':700,fill:'#56606a','letter-spacing':8});
@@ -209,7 +255,7 @@ function draw(svg, mode){
   const freeX = S.motor==='L' ? bx1 : bx0-30;
   el('rect',{x:freeX,y:top-10,width:30,height:boxH+20,fill:'#8e969e'},g);
   const mx = S.motor==='L' ? xL : bx1+5, mw = S.motor==='L' ? bx0-5-xL : xR-(bx1+5);
-  el('rect',{x:mx,y:top-30,width:mw,height:S.coverH,rx:30,fill:'url(#hoodv)',stroke:'#59616a','stroke-width':8},g);
+  el('rect',{x:mx,y:top-30,width:mw,height:S.coverH,rx:30,fill:`url(#${DP}hoodv)`,stroke:'#59616a','stroke-width':8},g);
   el('line',{x1:mx+20,y1:top+boxH*0.72,x2:mx+mw-20,y2:top+boxH*0.72,stroke:'#9aa2aa','stroke-width':6},g);
   for(let i=0;i<4;i++) el('rect',{x:mx+mw*0.25,y:top+30+i*55,width:mw*0.5,height:16,rx:8,fill:'#8e969e'},g);
   // controller
@@ -247,13 +293,13 @@ function draw(svg, mode){
   vdim(g, cdx, cyB+ch, 0, String(S.ctrlH), S.ctrl==='L'?cxB+cw:cxB);
 
   // section view
-  el('rect',{x:XS-100,y:top-150,width:100,height:GT+boxH+150-H,fill:'url(#sand)',stroke:'#1b1f24','stroke-width':8},g);
-  el('rect',{x:XS-300,y:0,width:boxD+600,height:70,fill:'url(#floor)'},g);
+  el('rect',{x:XS-100,y:top-150,width:100,height:GT+boxH+150-H,fill:`url(#${DP}sand)`,stroke:'#1b1f24','stroke-width':8},g);
+  el('rect',{x:XS-300,y:0,width:boxD+600,height:70,fill:`url(#${DP}floor)`},g);
   el('line',{x1:XS-300,y1:0,x2:XS+boxD+300,y2:0,stroke:'#1b1f24','stroke-width':14},g);
-  el('rect',{x:XS,y:-GT,width:guideD,height:GT,fill:S.guide==='ss'?'url(#ss)':'url(#alu)',stroke:'#59616a','stroke-width':6},g);
+  el('rect',{x:XS,y:-GT,width:guideD,height:GT,fill:S.guide==='ss'?`url(#${DP}ss)`:`url(#${DP}alu)`,stroke:'#59616a','stroke-width':6},g);
   el('line',{x1:XS+guideD/2,y1:-H,x2:XS+guideD/2,y2:-60,stroke:pvc,'stroke-width':14},g);
   const c=40;
-  el('path',{d:`M${XS} ${top} H${XS+boxD-c} L${XS+boxD} ${top+c} V${top+boxH-c} L${XS+boxD-c} ${top+boxH} H${XS} Z`,fill:'url(#hood)',stroke:'#1b1f24','stroke-width':8},g);
+  el('path',{d:`M${XS} ${top} H${XS+boxD-c} L${XS+boxD} ${top+c} V${top+boxH-c} L${XS+boxD-c} ${top+boxH} H${XS} Z`,fill:`url(#${DP}hood)`,stroke:'#1b1f24','stroke-width':8},g);
   el('circle',{cx:XS+boxD*0.45,cy:top+boxH*0.48,r:Math.min(boxD,boxH)*0.3,fill:pvc,stroke:'#1b1f24','stroke-width':6},g);
   el('circle',{cx:XS+boxD*0.45,cy:top+boxH*0.48,r:28,fill:'#d7dbe0',stroke:'#1b1f24','stroke-width':5},g);
   hdim(g,XS,XS+boxD,top-140,String(boxD),top-40);
@@ -278,7 +324,7 @@ function buildDoc() {
   return {
     ...base,
     schemaVersion: '1.0', productType: 'hsr', id: S.id, revision: S.revision,
-    order: { ...(base.order || {}), salesorderNumber: $('so').value.trim(), customer: { ...((base.order || {}).customer || {}), name: $('cust').value },
+    order: { ...(base.order || {}), salesorderNumber: (parseSo($('so').value) || {}).so || $('so').value.trim(), salesorderItem: (parseSo($('so').value) || {}).item ?? null, customer: { ...((base.order || {}).customer || {}), name: $('cust').value },
       deliveryAddress: $('addr').value, reference: $('ref').value,
       notes: S.acc.filter((r) => r.t === 'other' && r.text).map((r) => `${r.text} × ${r.q}`).join('; ') || (base.order || {}).notes || '' },
     opening: { ...(base.opening || {}), width: S.W, height: S.H, quantity: S.qty },
@@ -286,13 +332,14 @@ function buildDoc() {
   };
 }
 
-function idFromSo() {
-  const so = $('so').value.trim().toUpperCase();
-  const m = /^(DSO-\d+)(?:-(\d+))?/.exec(so);
-  if (!m) return S.id;
-  const item = (S.loadedOrder && S.loadedOrder.order && S.loadedOrder.order.salesorderItem) || 1;
-  return `${m[1]}-${m[2] || item}`;
+/** Номер формы = DSO из Zoho; номер изделия добавляется, только если в заказе разные изделия (Alex 25.11): DSO-26659 / DSO-26659-2. */
+function parseSo(v) {
+  const m = /^\s*(?:DSO-?)?\s*(\d+)(?:\s*[-/]\s*(\d+))?\s*$/i.exec(v || '');
+  if (!m) return null;
+  const item = m[2] ? +m[2] : null;
+  return { so: `DSO-${m[1]}`, item, id: `DSO-${m[1]}${item ? '-' + item : ''}` };
 }
+function idFromSo() { const p = parseSo($('so').value); return p ? p.id : ''; }
 
 // ── Отрисовка ────────────────────────────────────────────────
 function renderAcc() {
@@ -358,30 +405,6 @@ function renderMessages(calc) {
   notes.innerHTML = `<b>${T('notes')}</b><ul>${calc.warnings.map((m) => `<li>${esc(msgText(m, LANG))}</li>`).join('')}</ul>`;
 }
 
-function renderSpec() {
-  const card = $('specCard');
-  const spec = RESULT.spec;
-  $('csv').disabled = !spec;
-  if (!spec) {
-    $('specBody').innerHTML = `<tr><td colspan="7" class="hint">${S.supply === 'outsourced' ? T('outsourced') : '—'}</td></tr>`;
-    $('bun').value = '';
-    return;
-  }
-  const asmSel = $('asm');
-  if (!asmSel.options.length) {
-    for (const a of CAT.assemblies.assemblies) asmSel.add(new Option(`${a.sku} · ${a.name}`, a.sku));
-  }
-  const asm = CAT.assemblies.assemblies.find((a) => a.sku === asmSel.value) || CAT.assemblies.assemblies[0];
-  $('bun').value = spec.bundleNumber || '';
-  const secName = T('sec');
-  $('specBody').innerHTML = spec.lines.filter((l) => asm.sections.includes(l.section)).map((l) => {
-    const cls = l.missingSku ? 'miss' : (l.pendingImport || l.provisional ? 'pend' : '');
-    const total = +(l.qty * S.qty).toFixed(4);
-    return `<tr class="${cls}"><td>${secName[l.section] || l.section}</td><td>${esc(l.sku || '— no SKU —')}</td><td>${esc(l.name || l.partId)}</td>
-      <td class="n">${l.qty}</td><td>${l.unit || ''}</td><td class="n">${total}</td><td class="hint">${esc(ruleText(l, LANG) || '')}${l.pendingImport ? ' · not in Zoho yet' : ''}${l.provisional ? ' · not confirmed' : ''}</td></tr>`;
-  }).join('');
-  card.style.opacity = 1;
-}
 
 function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
@@ -390,7 +413,7 @@ function update() {
   S.H = Math.round(+$('H').value || 0);
   S.qty = Math.max(1, parseInt($('qty').value, 10) || 1);
   S.guide = $('guide').value;
-  S.supply = $('supply').value === 'out' ? 'outsourced' : 'own';
+  S.supply = $('supply').checked ? 'own' : 'outsourced'; // галочка Own production: SDA → SDA-DS (Alex 26.11)
   S.fabric = $('fabric').value;
   if (S.color >= pal().length) S.color = 0;
   S.ctrlH = Math.round(+$('ctrlH').value || 1000);
@@ -401,7 +424,7 @@ function update() {
   const calc = RESULT.calc;
   renderMessages(calc);
   const blocked = calc.status !== 'ok';
-  $('save').disabled = blocked;
+  saveState(blocked);
   document.querySelector('.sheet').style.opacity = blocked ? 0.35 : 1;
 
   if (calc.frame && calc.curtain) {
@@ -423,13 +446,14 @@ function update() {
     renderColors(); renderAcc();
   }
   renderSheetText(calc);
-  renderSpec();
+  if (S.frozen) lockInputs();
+  if (!LOADING) S.dirty = true;
   $('engineTag').textContent = `${calc.engine} · catalogs ${calc.catalogs || '?'}`;
 }
 
 // Ручные «прозрачная секция» из чертежа: draw() меняет S.vision и ставит visionAuto=false
 ['W', 'H', 'qty', 'cust', 'addr', 'so', 'ref', 'ctrlH'].forEach((id) => $(id).addEventListener('input', update));
-['guide', 'supply', 'fabric', 'asm'].forEach((id) => $(id).addEventListener('change', update));
+['guide', 'supply', 'fabric'].forEach((id) => $(id).addEventListener('change', update));
 $('sm').onclick = () => { S.extra = Math.max(0, S.extra - 1); S.visionAuto = true; update(); };
 $('sp').onclick = () => { S.extra = Math.min(2, S.extra + 1); S.visionAuto = true; update(); };
 $('sa').onclick = () => { S.extra = 0; S.visionAuto = true; update(); };
@@ -443,25 +467,6 @@ function download(name, text, type) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-$('save').onclick = () => {
-  const doc = { ...DOC, calc: RESULT.calc, spec: RESULT.spec };
-  download(`${S.id}.json`, JSON.stringify(doc, null, 2), 'application/json');
-};
-
-$('csv').onclick = () => {
-  const date = $('asmDate').value;
-  const out = exportAssemblyCsv(DOC, RESULT, CAT, { assemblySku: $('asm').value, date });
-  const msg = $('csvMsg');
-  const blocking = out.problems.filter((p) => !/ещё не заведён/.test(p));
-  if (!out.csv || blocking.length) {
-    msg.style.color = '#b71c1c';
-    msg.textContent = 'Export blocked: ' + out.problems.join('; ');
-    return;
-  }
-  download(out.fileName, out.csv, 'text/csv;charset=utf-8');
-  msg.style.color = out.problems.length ? '#8a6d00' : '#2e7d32';
-  msg.textContent = `${out.fileName} · ${out.problems.length ? 'check before import: ' + out.problems.join('; ') : 'ready for Zoho: Assemblies → ⋮ → Import Assemblies'}`;
-};
 
 $('openFile').onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return;
@@ -473,14 +478,14 @@ $('openFile').onchange = async (e) => {
 function loadOrder(doc) {
   S.loadedOrder = doc;
   const o = doc.options || {}; const ord = doc.order || {};
-  S.id = doc.id || S.id; S.revision = doc.revision || 1;
-  $('so').value = doc.id || ord.salesorderNumber || '';
+  S.revision = doc.revision || 1;
+  $('so').value = ord.salesorderNumber ? `${ord.salesorderNumber}${ord.salesorderItem ? '-' + ord.salesorderItem : ''}` : (doc.id || '');
   $('cust').value = (ord.customer && ord.customer.name) || '';
   $('addr').value = ord.deliveryAddress || '';
   $('ref').value = ord.reference || '';
   $('W').value = doc.opening.width; $('H').value = doc.opening.height; $('qty').value = doc.opening.quantity || 1;
   $('guide').value = o.frameMaterial === 'ss304' ? 'ss' : 'alu';
-  $('supply').value = o.supply === 'outsourced' ? 'out' : 'own';
+  $('supply').checked = o.supply !== 'outsourced';
   const pvc = o.pvc || 'blue';
   $('fabric').value = pvc.startsWith('mesh-') ? 'mesh' : 'pvc';
   S.fabric = $('fabric').value;
@@ -495,17 +500,155 @@ function loadOrder(doc) {
   update();
 }
 
-$('asmDate').value = new Date().toISOString().slice(0, 10);
-$('so').value = 'DSO-26659-2';
-$('ref').value = 'Type 2 · 5 doors';
-$('fabric').value = 'pvc';
-$('ctrlH').value = 1200;
-const q = new URLSearchParams(location.search);
-if (q.get('motor')) S.motor = q.get('motor'); if (q.get('ctrl')) S.ctrl = q.get('ctrl');
-if (q.get('W')) $('W').value = q.get('W'); if (q.get('H')) $('H').value = q.get('H');
-if (q.get('extra')) S.extra = +q.get('extra');
-if (q.get('color')) S.color = +q.get('color');
-if (q.get('guide')) $('guide').value = q.get('guide');
+// ── Справочник форм: сохранение, открытие, заморозка ─────────
+const VERSION = '1.0';
+const FORMS_URL = 'forms.html';
+const CALC_URL = 'sda-calculator.html';
+const productOf = () => (S.supply === 'outsourced' ? 'SDA' : 'SDA-DS');
+const withLang = (url) => `${url}${url.includes('?') ? '&' : '?'}lang=${LANG}`;
+
+/** Всплывающее сообщение внизу экрана — видно, где бы ни была прокрутка (Alex 27.11: нет видимого эффекта сохранения). */
+function toast(kind, html, ms = 4000) {
+  let t = $('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.className = `toast ${kind} on`; t.innerHTML = html;
+  clearTimeout(toast.tm); toast.tm = setTimeout(() => t.classList.remove('on'), ms);
+}
+function flashSave(ok) {
+  const b = $('save'); b.textContent = ok ? T('savedBtn') : T('save');
+  b.classList.toggle('done', ok);
+  clearTimeout(flashSave.tm);
+  if (ok) flashSave.tm = setTimeout(() => { b.textContent = T('save'); b.classList.remove('done'); }, 2500);
+}
+function fail(html) { banner('err', html); toast('err', html, 7000); flashSave(false); }
+function banner(kind, html, btn) {
+  const b = $('banner');
+  if (!kind) { b.hidden = true; return; }
+  b.hidden = false; b.className = `banner ${kind}`;
+  b.innerHTML = html + (btn ? ` <button class="btn s" id="bannerBtn">${esc(btn.text)}</button>` : '');
+  if (btn) $('bannerBtn').onclick = btn.onclick;
+}
+function fsUi() {
+  const b = $('fsBtn'); const s = FS.state;
+  b.textContent = s === 'ok' ? T('fsOk')(FS.name) : s === 'reconnect' ? T('fsRe')(FS.name) : s === 'unsupported' ? T('fsUns') : T('fsNo');
+  b.className = 'btn s' + (s === 'ok' ? ' btn-ok' : '');
+}
+$('fsBtn').onclick = async () => {
+  try {
+    if (FS.state === 'reconnect') await fsReconnect(); else if (FS.state !== 'unsupported') await fsPick();
+    fsUi();
+    if (PENDING) { const p = PENDING; PENDING = null; await p(); } else if (FS.state === 'ok' && !S.frozen) banner(null);
+  } catch (e) { if (e && e.name !== 'AbortError') alert(e.message); }
+};
+
+/** Кнопка Save и заголовок: почему сохранить нельзя — подсказкой рядом. */
+function saveState(blocked) {
+  const why = S.frozen ? T('whyFrozen') : blocked ? T('whyBlocked') : !S.id ? T('whyNoId') : '';
+  $('save').disabled = !!why;
+  $('saveWhy').textContent = why;
+  $('formTag').textContent = productOf();
+  $('title').textContent = `${productOf()} · ${S.formId || S.id || T('newOrder')}`;
+  document.title = `${S.formId || T('newOrder')} · ${productOf()}`;
+  $('lnkForms').href = withLang(FORMS_URL);
+}
+
+function lockInputs() {
+  document.querySelectorAll('.app input, .app select, .app textarea, .app button').forEach((e) => {
+    if (e.id !== 'print' && e.id !== 'dl') e.disabled = true;
+  });
+}
+function setFrozen(on) {
+  S.frozen = on;
+  document.body.classList.toggle('frozen', on);
+  $('openLbl').style.display = on ? 'none' : '';
+  if (on) {
+    lockInputs();
+    banner('info', T('frozen')(esc(S.formId), withLang(`${CALC_URL}?calc=${encodeURIComponent(S.formId)}`)));
+  }
+}
+
+async function save() {
+  update();
+  const id = S.id;
+  if (!id || S.frozen) return;
+  if (FS.state === 'reconnect') {
+    PENDING = save;
+    banner('warn', esc(T('folderRe')(FS.name)), { text: T('allow'), onclick: () => $('fsBtn').click() });
+    return;
+  }
+  try {
+    const [fx, sp] = await Promise.all([readForms(), specIds()]);
+    if (sp.has(id)) {
+      if (id === S.formId) { setFrozen(true); update(); return; } // спецификацию создали, пока форма была открыта
+      fail(esc(T('takenSpec')(id))); return;
+    }
+    if (fx.rows.some((r) => r.id === id) && id !== S.formId) { fail(esc(T('takenForm')(id))); return; }
+    const old = S.formId && S.formId !== id ? S.formId : null;
+    if (old && (sp.has(old) || !confirm(T('renamed')(old, id)))) return;
+    const now = nowStr();
+    const created = (S.formId && S.created) || now;
+    const doc = structuredClone(DOC);
+    delete doc.calc; delete doc.spec; // в форме только заказ: расчёт и состав делает калькулятор
+    doc.id = id;
+    const rec = { app: 'hsd-configurator', kind: 'form', version: VERSION, engine: ENGINE, id, category: 'highspeed',
+      product: productOf(), status: 'draft', created, edited: now, doc };
+    const row = { id, order: doc.order.salesorderNumber, pos: doc.order.salesorderItem || '', customer: (doc.order.customer || {}).name || '',
+      category: 'highspeed', product: rec.product, W: S.W, H: S.H, qty: S.qty, created, edited: now, status: 'draft' };
+    await saveForm(rec, row);
+    if (old) await deleteForm(old);
+    S.formId = id; S.created = created; S.loadedOrder = doc; S.dirty = false;
+    history.replaceState(null, '', `?form=${encodeURIComponent(id)}&lang=${LANG}`);
+    const msg = esc(T('saved')(id, FS.state === 'ok' ? T('inFolder')(FS.name) : T('noFolder')));
+    banner(FS.state === 'ok' ? 'ok' : 'warn', msg);
+    toast(FS.state === 'ok' ? 'ok' : 'warn', `✓ ${msg} <span class="tm">${now.slice(11)}</span>`, FS.state === 'ok' ? 4000 : 7000);
+    flashSave(true);
+    update(); S.dirty = false;
+  } catch (e) { fail(esc(T('saveErr')(e.message || String(e)))); }
+}
+$('save').onclick = async () => {
+  const b = $('save'); b.disabled = true; b.textContent = T('saving');
+  try { await save(); } finally { if (!b.classList.contains('done')) b.textContent = T('save'); saveState(RESULT && RESULT.calc.status !== 'ok'); }
+};
+$('dl').onclick = () => {
+  const doc = structuredClone(DOC); delete doc.calc; delete doc.spec;
+  download(`${S.id || 'order'}.json`, JSON.stringify(doc, null, 2), 'application/json');
+};
+
+async function openForm(id) {
+  let rec = null;
+  try { rec = await stGet(`forms/${id}.json`); } catch (e) { banner('err', esc(e.message)); }
+  if (!rec) {
+    banner('err', esc(T('notFound')(id)), { text: T('forms'), onclick: () => { location.href = withLang(FORMS_URL); } });
+    update(); return;
+  }
+  loadOrder(rec.doc || rec);
+  S.formId = id; S.created = rec.created || null;
+  const sp = await specIds().catch(() => new Set());
+  if (sp.has(id)) setFrozen(true); else banner(null);
+  update(); S.dirty = false;
+}
+
+let PENDING = null;
+async function start() {
+  const q = new URLSearchParams(location.search);
+  await fsInit(); fsUi();
+  const formId = q.get('form');
+  if (formId && FS.state === 'reconnect') {
+    PENDING = () => openForm(formId);
+    banner('warn', esc(T('folderRe')(FS.name)), { text: T('allow'), onclick: () => $('fsBtn').click() });
+  } else if (formId) {
+    await openForm(formId);
+  } else {
+    const p = q.get('product');
+    if (p === 'SDA-DS') $('supply').checked = true;
+    if (FS.state === 'none') banner('warn', esc(T('folderNone')));
+  }
+  update();
+  LOADING = false; S.dirty = false;
+}
+window.addEventListener('beforeunload', (e) => { if (S.dirty && !S.frozen) { e.preventDefault(); e.returnValue = ''; } });
+
 applyLang();
 update();
+await start();
 window.SDA = { get result() { return RESULT; }, get doc() { return DOC; }, loadOrder };
