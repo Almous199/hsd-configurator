@@ -7,6 +7,7 @@
 // Себестоимости и состава (спецификации, CSV Zoho) здесь нет: это экран менеджера, спецификация — в калькуляторе SDA.
 import { calculateHsr, ENGINE } from '../products/hsr/index.js';
 import { FS, fsInit, fsPick, fsReconnect, stGet, readForms, specIds, saveForm, deleteForm, nowStr } from './storage.js';
+import { msgText } from '../core/messages.js';
 
 const CATALOG_FILES = ['items', 'guides', 'profiles', 'header', 'drives', 'space', 'frame-materials',
   'layouts', 'curtain', 'assemblies', 'accessories'];
@@ -392,9 +393,9 @@ function renderSheetText(calc) {
 function renderMessages(calc) {
   const warn = $('warn'); const notes = $('notes');
   warn.style.display = calc.errors.length ? 'block' : 'none';
-  warn.innerHTML = calc.errors.map((m) => esc(m.code === 'NOT_AVAILABLE' ? T('warn')(S.W, S.H, (S.W * S.H / 1e6).toFixed(1)) : m.text)).join('<br>');
+  warn.innerHTML = calc.errors.map((m) => esc(m.code === 'NOT_AVAILABLE' ? T('warn')(S.W, S.H, (S.W * S.H / 1e6).toFixed(1)) : msgText(m, LANG))).join('<br>');
   notes.style.display = calc.warnings.length ? 'block' : 'none';
-  notes.innerHTML = `<b>${T('notes')}</b><ul>${calc.warnings.map((m) => `<li>${esc(m.text)}</li>`).join('')}</ul>`;
+  notes.innerHTML = `<b>${T('notes')}</b><ul>${calc.warnings.map((m) => `<li>${esc(msgText(m, LANG))}</li>`).join('')}</ul>`;
 }
 
 

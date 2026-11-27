@@ -11,7 +11,7 @@ export function calcFrame(inp, cat, messages) {
   const { W, H, areaM2 } = inp;
   const material = cat.frameMaterials.options.find((m) => m.id === inp.frameMaterial);
   if (!material) {
-    messages.push(error('FRAME_MATERIAL', `Неизвестный материал рамы «${inp.frameMaterial}»`));
+    messages.push(error('FRAME_MATERIAL', { ru: `Неизвестный материал рамы «${inp.frameMaterial}»`, en: `Unknown frame material «${inp.frameMaterial}»`, th: `ไม่รู้จักวัสดุโครง «${inp.frameMaterial}»` }));
     return null;
   }
   const guide = cat.guides.items.find((g) => g.id === material.guide);
@@ -26,7 +26,7 @@ export function calcFrame(inp, cat, messages) {
   }
   if (!sidePlateId) {
     messages.push(error('NOT_AVAILABLE',
-      `Not available: проём ${W}×${H} (${areaM2.toFixed(2)} м²) больше ${sel.maxArea_m2} м², SDA такой не делаем`,
+      { ru: `Not available: проём ${W}×${H} (${areaM2.toFixed(2)} м²) больше ${sel.maxArea_m2} м², SDA такой не делаем`, en: `Not available: opening ${W}×${H} (${areaM2.toFixed(2)} m²) is over ${sel.maxArea_m2} m², SDA is not made this size`, th: `ไม่สามารถผลิตได้: ช่องเปิด ${W}×${H} (${areaM2.toFixed(2)} ตร.ม.) เกิน ${sel.maxArea_m2} ตร.ม.` },
       { areaM2, maxAreaM2: sel.maxArea_m2 }));
     return null;
   }
@@ -35,10 +35,10 @@ export function calcFrame(inp, cat, messages) {
   let sidePlateAuto = sidePlateId;
   if (ov) {
     const p = cat.header.sidePlates.find((s) => s.id === ov.value && s.active);
-    if (!p) messages.push(error('OVERRIDE_SIDE_PLATE', `Боковина «${ov.value}» не используется для SDA`));
+    if (!p) messages.push(error('OVERRIDE_SIDE_PLATE', { ru: `Боковина «${ov.value}» не используется для SDA`, en: `End plate «${ov.value}» is not used for SDA`, th: `แผ่นปิดข้าง «${ov.value}» ไม่ใช้กับ SDA` }));
     else {
       sidePlateId = ov.value;
-      messages.push(warning('OVERRIDE_APPLIED', `Боковина заменена вручную на ${ov.value}: ${ov.reason}`));
+      messages.push(warning('OVERRIDE_APPLIED', { ru: `Боковина заменена вручную на ${ov.value}: ${ov.reason}`, en: `End plate changed manually to ${ov.value}: ${ov.reason}`, th: `เปลี่ยนแผ่นปิดข้างเป็น ${ov.value} ด้วยมือ: ${ov.reason}` }));
     }
   }
 
@@ -71,7 +71,7 @@ export function calcFrame(inp, cat, messages) {
   };
 
   if (W > cat.header.wideShaftWarning.widthOver) {
-    messages.push(warning('WIDE_SHAFT', `W > ${cat.header.wideShaftWarning.widthOver}: ${cat.header.wideShaftWarning.text}`));
+    messages.push(warning('WIDE_SHAFT', { ru: `W > ${cat.header.wideShaftWarning.widthOver}: ${cat.header.wideShaftWarning.text}`, en: `W > ${cat.header.wideShaftWarning.widthOver}: shaft must be joined from two pieces`, th: `W > ${cat.header.wideShaftWarning.widthOver}: เพลาต้องต่อสองท่อน` }));
   }
 
   return {
