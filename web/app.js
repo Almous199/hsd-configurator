@@ -101,7 +101,7 @@ Object.assign(I18N.th, {
 });
 // Справочник форм и сохранение (тред «Сделать справочник форм заказа», 26.11)
 Object.assign(I18N.en, {
-  ownHint: 'Unticked: SDA ordered outside', forms: '← Order forms', newOrder: 'new order', open: 'Open order JSON…', dl: 'Download JSON', save: 'Save',
+  ownHint: 'Unticked: SDA ordered outside', savedBtn: 'Saved ✓', saving: 'Saving…', saveErr: (m) => `Not saved: ${m}`, forms: '← Order forms', newOrder: 'new order', open: 'Open order JSON…', dl: 'Download JSON', save: 'Save',
   saveHint: '“Save” keeps the form in Order forms as a draft; you can change and save it again until the engineer creates the specification with this number. Below is the approval sheet that the customer signs (always EN + TH).',
   whyFrozen: 'frozen: the specification exists', whyBlocked: 'fix the size to save', whyNoId: 'enter the sales order number (DSO-…) to save',
   frozen: (id, href) => `🔒 Frozen: the specification <a href="${href}">${id}</a> has been created from this form, so the form is read-only. To change the order, the engineer deletes the specification in Specifications; then the form becomes a draft again.`,
@@ -116,7 +116,7 @@ Object.assign(I18N.en, {
   fsOk: (n) => `Folder: ${n} ✓`, fsRe: (n) => `Reconnect folder (${n})`, fsNo: 'Choose working folder', fsUns: 'Browser: no folder access',
 });
 Object.assign(I18N.th, {
-  ownHint: 'ไม่ติ๊ก: SDA สั่งจากภายนอก', forms: '← ฟอร์มคำสั่งซื้อ', newOrder: 'คำสั่งซื้อใหม่', open: 'เปิด JSON คำสั่งซื้อ…', dl: 'ดาวน์โหลด JSON', save: 'บันทึก',
+  ownHint: 'ไม่ติ๊ก: SDA สั่งจากภายนอก', savedBtn: 'บันทึกแล้ว ✓', saving: 'กำลังบันทึก…', saveErr: (m) => `บันทึกไม่สำเร็จ: ${m}`, forms: '← ฟอร์มคำสั่งซื้อ', newOrder: 'คำสั่งซื้อใหม่', open: 'เปิด JSON คำสั่งซื้อ…', dl: 'ดาวน์โหลด JSON', save: 'บันทึก',
   saveHint: '“บันทึก” จะเก็บฟอร์มเป็นฉบับร่างในรายการฟอร์มคำสั่งซื้อ แก้ไขและบันทึกซ้ำได้จนกว่าวิศวกรจะสร้างสเปคเลขเดียวกัน ด้านล่างคือแบบอนุมัติที่ลูกค้าลงนาม (สองภาษาเสมอ)',
   whyFrozen: 'ล็อกแล้ว: มีสเปคแล้ว', whyBlocked: 'แก้ขนาดก่อนบันทึก', whyNoId: 'ใส่เลขที่ใบสั่งขาย (DSO-…) เพื่อบันทึก',
   frozen: (id, href) => `🔒 ล็อกแล้ว: สร้างสเปค <a href="${href}">${id}</a> จากฟอร์มนี้แล้ว ฟอร์มจึงดูได้อย่างเดียว หากต้องการแก้คำสั่งซื้อ วิศวกรต้องลบสเปคในรายการสเปค แล้วฟอร์มจะกลับเป็นฉบับร่าง`,
@@ -507,6 +507,20 @@ const CALC_URL = 'sda-calculator.html';
 const productOf = () => (S.supply === 'outsourced' ? 'SDA' : 'SDA-DS');
 const withLang = (url) => `${url}${url.includes('?') ? '&' : '?'}lang=${LANG}`;
 
+/** Всплывающее сообщение внизу экрана — видно, где бы ни была прокрутка (Alex 27.11: нет видимого эффекта сохранения). */
+function toast(kind, html, ms = 4000) {
+  let t = $('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.className = `toast ${kind} on`; t.innerHTML = html;
+  clearTimeout(toast.tm); toast.tm = setTimeout(() => t.classList.remove('on'), ms);
+}
+function flashSave(ok) {
+  const b = $('save'); b.textContent = ok ? T('savedBtn') : T('save');
+  b.classList.toggle('done', ok);
+  clearTimeout(flashSave.tm);
+  if (ok) flashSave.tm = setTimeout(() => { b.textContent = T('save'); b.classList.remove('done'); }, 2500);
+}
+function fail(html) { banner('err', html); toast('err', html, 7000); flashSave(false); }
 function banner(kind, html, btn) {
   const b = $('banner');
   if (!kind) { b.hidden = true; return; }
@@ -566,9 +580,9 @@ async function save() {
     const [fx, sp] = await Promise.all([readForms(), specIds()]);
     if (sp.has(id)) {
       if (id === S.formId) { setFrozen(true); update(); return; } // спецификацию создали, пока форма была открыта
-      banner('err', esc(T('takenSpec')(id))); return;
+      fail(esc(T('takenSpec')(id))); return;
     }
-    if (fx.rows.some((r) => r.id === id) && id !== S.formId) { banner('err', esc(T('takenForm')(id))); return; }
+    if (fx.rows.some((r) => r.id === id) && id !== S.formId) { fail(esc(T('takenForm')(id))); return; }
     const old = S.formId && S.formId !== id ? S.formId : null;
     if (old && (sp.has(old) || !confirm(T('renamed')(old, id)))) return;
     const now = nowStr();
@@ -584,11 +598,17 @@ async function save() {
     if (old) await deleteForm(old);
     S.formId = id; S.created = created; S.loadedOrder = doc; S.dirty = false;
     history.replaceState(null, '', `?form=${encodeURIComponent(id)}&lang=${LANG}`);
-    banner('ok', esc(T('saved')(id, FS.state === 'ok' ? T('inFolder')(FS.name) : T('noFolder'))));
+    const msg = esc(T('saved')(id, FS.state === 'ok' ? T('inFolder')(FS.name) : T('noFolder')));
+    banner(FS.state === 'ok' ? 'ok' : 'warn', msg);
+    toast(FS.state === 'ok' ? 'ok' : 'warn', `✓ ${msg} <span class="tm">${now.slice(11)}</span>`, FS.state === 'ok' ? 4000 : 7000);
+    flashSave(true);
     update(); S.dirty = false;
-  } catch (e) { banner('err', esc(e.message || String(e))); }
+  } catch (e) { fail(esc(T('saveErr')(e.message || String(e)))); }
 }
-$('save').onclick = save;
+$('save').onclick = async () => {
+  const b = $('save'); b.disabled = true; b.textContent = T('saving');
+  try { await save(); } finally { if (!b.classList.contains('done')) b.textContent = T('save'); saveState(RESULT && RESULT.calc.status !== 'ok'); }
+};
 $('dl').onclick = () => {
   const doc = structuredClone(DOC); delete doc.calc; delete doc.spec;
   download(`${S.id || 'order'}.json`, JSON.stringify(doc, null, 2), 'application/json');
