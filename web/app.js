@@ -219,9 +219,12 @@ function draw(svg, mode){
   el('rect',{x:a,y:-GT,width:W,height:GT,fill:'url(#sheen)'},g);
   // transparent sections (whole section between profiles)
   for(let i=1;i<=n;i++){ if(!S.vision.has(i)) continue;
-    const y0=yb[i-1]+(i>1?20:0), y1=yb[i]-(i<n?20:0), m=30, b=45;
-    const px=a+b, pw=W-2*b, py=-(y1-m), ph=(y1-y0)-2*m - (i===1?60:0);
-    el('rect',{x:px,y:py,width:pw,height:ph,rx:8,fill:'url(#glass)',stroke:'#7fa9c4','stroke-width':6},g);
+    // окно на всё поле секции: по ширине между направляющими и по высоте между профилями, без полосок ткани (Alex 27.11)
+    const y0=yb[i-1]+(i>1?20:0), y1=yb[i]-(i<n?20:0), m=0;
+    const px=a, pw=W, py=-(y1-m), ph=(y1-y0)-2*m - (i===1?60:0);
+    el('rect',{x:px,y:py,width:pw,height:ph,fill:'url(#glass)'},g);
+    el('line',{x1:px,y1:py,x2:px+pw,y2:py,stroke:'#7fa9c4','stroke-width':6},g);
+    el('line',{x1:px,y1:py+ph,x2:px+pw,y2:py+ph,stroke:'#7fa9c4','stroke-width':6},g);
     const k=Math.max(2,Math.round(pw/500));
     for(let j=0;j<k;j++){ const rx=px+pw*(j+0.55)/k;
       el('line',{x1:rx-60,y1:py+ph*0.42,x2:rx+80,y2:py+ph*0.28,stroke:'#fff','stroke-width':12,opacity:.9},g);
