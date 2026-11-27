@@ -7,7 +7,8 @@
 import { FS, fsInit, fsPick, fsReconnect, readForms, specIds, deleteForm } from './storage.js';
 
 const VERSION = '1.0';
-const SPECS_URL = '../../Web%20constructor/Door%20calculation%20tool/specs.html';
+// Онлайн (Catalyst) все страницы лежат рядом: specs.html — общий справочник спецификаций.
+const SPECS_URL = window.HSD ? 'specs.html' : '../../Web%20constructor/Door%20calculation%20tool/specs.html';
 const FORM_URL = 'sda-order-form.html';
 const CALC_URL = 'sda-calculator.html';
 
@@ -82,7 +83,7 @@ document.querySelectorAll('.lang button').forEach((b) => b.onclick = () => {
 // ───────────── рабочая папка ─────────────
 function fsUi() {
   const b = $('fsBtn'); const s = FS.state;
-  b.textContent = s === 'ok' ? t('fsOk')(FS.name) : s === 'reconnect' ? t('fsRe')(FS.name) : s === 'unsupported' ? t('fsUns') : t('fsNo');
+  b.textContent = s === 'ok' ? (FS.server ? FS.name : t('fsOk')(FS.name)) : s === 'reconnect' ? t('fsRe')(FS.name) : s === 'unsupported' ? t('fsUns') : t('fsNo');
   b.className = 'btn btn-sm ' + (s === 'ok' ? 'btn-ok' : '');
   const info = $('info');
   info.className = 'infobox'; info.hidden = false;
@@ -196,6 +197,7 @@ $('plist').onclick = (e) => {
 $('ver').textContent = `v${VERSION}`;
 applyLang(); renderDialog();
 await fsInit();
+if (FS.server && FS.role === 'manager') $('lnkSpecs').hidden = true; // онлайн: спецификации менеджеру не показываем
 await load();
 if (new URLSearchParams(location.search).get('new') === '1') openDlg(true);
 window.addEventListener('focus', () => { if (FS.state === 'ok') load(); }); // вернулись из формы или справочника спецификаций

@@ -11,7 +11,8 @@ import { ruleText } from '../products/hsr/spec.js';
 import { FS, fsInit, fsPick, fsReconnect, stGet, readIndex, saveCalc, freezeForm, nowStr } from './storage.js';
 
 const VERSION = '1.0';
-const SPECS_URL = '../../Web%20constructor/Door%20calculation%20tool/specs.html';
+// Онлайн (Catalyst) все страницы лежат рядом: specs.html — общий справочник спецификаций.
+const SPECS_URL = window.HSD ? 'specs.html' : '../../Web%20constructor/Door%20calculation%20tool/specs.html';
 const CATALOG_FILES = ['items', 'guides', 'profiles', 'header', 'drives', 'space', 'frame-materials',
   'layouts', 'curtain', 'assemblies', 'accessories'];
 
@@ -740,7 +741,7 @@ async function save() {
     history.replaceState(null, '', `?calc=${encodeURIComponent(id)}&lang=${LANG}`);
     saveBusy(false);
     setView(true);
-    const where = FS.state === 'ok' ? ` (folder ${esc(FS.name)})` : ' (this browser only — no working folder)';
+    const where = FS.server ? ' (online)' : FS.state === 'ok' ? ` (folder ${esc(FS.name)})` : ' (this browser only — no working folder)';
     banner('ok', `Saved ${esc(id)} to the registry${where}${frozen ? ' · order form frozen' : ''}.`);
     render(); tab('spec'); window.scrollTo({ top: 0, behavior: 'smooth' });
     savedChip();
@@ -854,7 +855,7 @@ function banner(kind, html, btn) {
 }
 function fsUi() {
   const b = $('fsBtn'); const s = FS.state;
-  b.textContent = s === 'ok' ? `Folder: ${FS.name} ✓` : s === 'reconnect' ? `Reconnect folder (${FS.name})` : s === 'unsupported' ? 'Browser: no folder access' : 'Choose working folder';
+  b.textContent = s === 'ok' ? (FS.server ? FS.name : `Folder: ${FS.name} ✓`) : s === 'reconnect' ? `Reconnect folder (${FS.name})` : s === 'unsupported' ? 'Browser: no folder access' : 'Choose working folder';
   b.className = 'btn btn-sm ' + (s === 'ok' ? 'btn-ok' : '');
 }
 $('fsBtn').onclick = async () => {
@@ -907,5 +908,9 @@ async function openFromUrl() {
 $('ver').textContent = `v${VERSION} · ${ENGINE}`;
 applyLang();
 await fsInit(); fsUi();
+if (FS.server && FS.role === 'manager') {
+  // Онлайн: менеджер работает только с формами заказа (роли, план 27.11); сервер всё равно не отдаст спецификации.
+  banner('err', 'The calculator is for engineers. Your role (manager) works with Order forms.', { text: '← Order forms', onclick: () => { location.href = `forms.html?lang=${LANG}`; } });
+}
 recalc(); render();
 await openFromUrl();

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import working folder</title>
+<!-- Перенос рабочей папки «Door calculation tool» с ПК в облако (только администратор, онлайн-версия).
+     Читает папку в браузере (Chrome / Edge) и загружает через функцию api: сначала файлы forms/*.json и calcs/*.json,
+     потом catalog.json, orders.json и индексы. Папка на ПК не меняется. Уже загруженные файлы перезаписываются. -->
+<style>
+body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:14px;background:#f5f4f0;color:#1a1a18;margin:0}
+.wrap{max-width:820px;margin:0 auto;padding:24px}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+p{color:#6b6b67;margin:0 0 16px}
+.btn{border:.5px solid rgba(0,0,0,.18);border-radius:8px;padding:6px 14px;background:#fff;cursor:pointer;font:inherit}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn:disabled{opacity:.45;cursor:default}
+pre{background:#fff;border:.5px solid rgba(0,0,0,.1);border-radius:8px;padding:12px;white-space:pre-wrap;font-size:12.5px;min-height:120px}
+.err{color:#b3261e}.ok{color:#2e7d32}
+</style>
+<script src="hsd-online.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <h1>Import working folder → online</h1>
+  <p>Admin only. Choose the folder «Door calculation tool» (Web constructor → Door calculation tool). Order forms, specifications, catalog.json and orders.json are copied to the cloud. Nothing on the PC is changed.</p>
+  <p id="who"></p>
+  <button class="btn btn-primary" id="pick" disabled>Choose folder and import…</button>
+  <a class="btn" href="specs.html" style="text-decoration:none;color:inherit">Specifications</a>
+  <a class="btn" href="forms.html" style="text-decoration:none;color:inherit">Order forms</a>
+  <pre id="log"></pre>
+</div>
+<script>
+const log = (s, cls) => { const e = document.createElement('div'); e.textContent = s; if (cls) e.className = cls; document.getElementById('log').appendChild(e); };
+const FS = {};
+async function readJson(dir, name) {
+  try { const f = await (await dir.getFileHandle(name)).getFile(); return JSON.parse(await f.text()); }
+  catch (e) { if (e && e.name === 'NotFoundError') return null; throw e; }
+}
+async function sub(dir, name) { try { return await dir.getDirectoryHandle(name); } catch (e) { return null; } }
+async function run() {
+  if (!window.showDirectoryPicker) { log('This browser cannot open folders. Use Chrome or Edge.', 'err'); return; }
+  let root;
+  try { root = await window.showDirectoryPicker({ id: 'doorcalc', mode: 'read' }); } catch (e) { return; }
+  log(`Folder: ${root.name}`);
+  let n = 0, bad = 0;
+  for (const kind of ['forms', 'calcs']) {
+    const d = await sub(root, kind);
+    if (!d) { log(`${kind}/ — not found, skipped`); continue; }
+    for await (const [name, h] of d.entries()) {
+      if (h.kind !== 'file' || !/\.json$/i.test(name) || name === 'index.json') continue;
+      try { const obj = JSON.parse(await (await h.getFile()).text()); await HSD.put(`${kind}/${name}`, obj); n++; log(`✓ ${kind}/${name}`); }
+      catch (e) { bad++; log(`✗ ${kind}/${name}: ${e.message}`, 'err'); }
+    }
+  }
+  for (const name of ['catalog.json', 'orders.json']) {
+    try { const obj = await readJson(root, name); if (obj) { await HSD.put(name, obj); n++; log(`✓ ${name}`); } else log(`${name} — not found, skipped`); }
+    catch (e) { bad++; log(`✗ ${name}: ${e.message}`, 'err'); }
+  }
+  for (const kind of ['forms', 'calcs']) {
+    const d = await sub(root, kind); if (!d) continue;
+    try { const ix = await readJson(d, 'index.json'); if (ix) { await HSD.put(`${kind}/index.json`, ix); log(`✓ ${kind}/index.json`); } }
+    catch (e) { bad++; log(`✗ ${kind}/index.json: ${e.message}`, 'err'); }
+  }
+  log(`Done: ${n} files${bad ? `, ${bad} errors` : ''}.`, bad ? 'err' : 'ok');
+}
+HSD.init(FS).then((me) => {
+  document.getElementById('who').textContent = `Signed in: ${me.email} (${me.role})`;
+  if (me.role !== 'admin') { log('Import is for the administrator only.', 'err'); return; }
+  const b = document.getElementById('pick'); b.disabled = false; b.onclick = run;
+}).catch((e) => log(e.message, 'err'));
+</script>
+</body>
+</html>

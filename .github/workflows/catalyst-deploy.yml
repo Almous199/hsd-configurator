@@ -1,0 +1,43 @@
+# Выкладка онлайн-версии в Zoho Catalyst (проект DOORHAN SIAM, дата-центр EU), среда Development.
+# Запускается при каждом merge в main и вручную (Actions → Deploy to Catalyst → Run workflow).
+# В Production переносит Alex кнопкой «Deploy to Production» в консоли Catalyst после проверки.
+# Нужен секрет репозитория CATALYST_TOKEN: выпускается командой `catalyst token:generate` на аккаунт Alex.
+name: Deploy to Catalyst
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: catalyst-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CATALYST_TOKEN: ${{ secrets.CATALYST_TOKEN }}
+      CATALYST_PROJECT_ID: '39511000000014024'
+      CATALYST_ORG: '20121815916'
+      CATALYST_ACTIVE_DC: eu
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Tests
+        run: npm test
+      - name: Build web client
+        run: npm run build:catalyst
+      - name: Install function dependencies
+        working-directory: catalyst/functions/api
+        run: npm install --omit=dev --no-audit --no-fund
+      - name: Check token
+        run: |
+          if [ -z "$CATALYST_TOKEN" ]; then
+            echo "::error::Секрет CATALYST_TOKEN не задан (Settings → Secrets and variables → Actions)"; exit 1
+          fi
+      - name: Deploy (Development)
+        working-directory: catalyst
+        run: npx --yes zcatalyst-cli@1.29.1 deploy
